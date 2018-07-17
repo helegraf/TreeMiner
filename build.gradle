@@ -1,0 +1,13 @@
+// Apply the java-library plugin to add support for Java Library
+apply plugin: 'java-library'
+
+repositories {
+    // Use jcenter for resolving dependencies.
+    jcenter()
+}
+
+dependencies {
+    // Use JUnit test framework
+    testImplementation 'junit:junit:4.12'
+}
+
