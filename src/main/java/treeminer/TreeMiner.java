@@ -22,7 +22,41 @@ public class TreeMiner implements FrequentSubtreeFinder {
 
 	@Override
 	public boolean containsSubtree(String tree, String subtree) {
-		// TODO Auto-generated method stub
+		String[] treeRepresentation = tree.split(treeNodeSeparator);
+		String[] subTreeRepresentation = subtree.split(treeNodeSeparator);
+		// This doesn't find embedded subtrees only direct ones
+		// Represents at which node we are of the subtreerepresentation
+		int nextNode = 0;
+		int childNum = 0;
+		for (int i = 0; i < treeRepresentation.length; i++) {
+			if (treeRepresentation[i].equals(subTreeRepresentation[nextNode])) {
+				if (childNum == 0) {
+					// Found fitting node
+					nextNode++;
+					if (nextNode == subTreeRepresentation.length) {
+						return true;
+					}
+				} else {
+					if (treeRepresentation[i].equals(moveUpToken)) {
+						childNum--;
+					} else {
+						childNum++;
+					}
+				}
+			} else {
+				if (nextNode != 0) {
+					if (treeRepresentation[i].equals(moveUpToken)) {
+						if (childNum > 0) {
+							childNum--;
+						} else {
+							nextNode--;
+						}
+					} else {
+						childNum++;
+					}
+				}
+			}
+		}
 		return false;
 	}
 
@@ -234,7 +268,8 @@ public class TreeMiner implements FrequentSubtreeFinder {
 
 					if (newScopeList.size() >= minSupport) {
 						// not yjelement.getright, but is attached to the new position of x
-						int numberOfChildrenOfParentNode = findNumberOfChildrenOfNode(equivalenceClass.getPrefix(), XIelement.getRight());
+						int numberOfChildrenOfParentNode = findNumberOfChildrenOfNode(equivalenceClass.getPrefix(),
+								XIelement.getRight());
 						int newXPosition = XIelement.getRight() + 1 + numberOfChildrenOfParentNode;
 						Pair<String, Integer> newElement = new ImmutablePair<String, Integer>(YJElement.getLeft(),
 								newXPosition);
@@ -363,28 +398,48 @@ public class TreeMiner implements FrequentSubtreeFinder {
 
 	}
 
+	/**
+	 * Finds all the non-embedded frequent subtrees.
+	 * 
+	 * @param eq
+	 * @return
+	 */
 	TreeSet<String> extractFrequentTrees(EquivalenceClass eq) {
 		TreeSet<String> foundTrees = new TreeSet<String>();
+		TreeMap<String,ScopeListRepresentation> newScopeLists = new TreeMap<String, ScopeListRepresentation>();
+		
 		eq.getScopeLists().forEach((subTree, scopeList) -> {
-			foundTrees.add(subTree);
+			// for each scope list element of a subtree, check if actually appears in that tree!
+			int support = 0;
+			for (Triple<Integer,String,Scope> triple : scopeList) {
+				if (containsSubtree(trees.get(triple.getLeft()), subTree)) {
+					support++;
+				}
+			}
+			
+			if (support >= minSupport) {
+				foundTrees.add(subTree);
+				newScopeLists.put(subTree, scopeList);
+			} 
 		});
+		eq.setScopeLists(newScopeLists);
 		return foundTrees;
 	}
-	
-	int findNumberOfChildrenOfNode (String subtree, int attachedToNode) {
-		String [] tree = subtree.split(" ");
+
+	int findNumberOfChildrenOfNode(String subtree, int attachedToNode) {
+		String[] tree = subtree.split(" ");
 		int atNode = -1;
 		boolean foundNode = false;
 		int numChildren = 0;
 		for (String treeElement : tree) {
-			if (!foundNode)  {
+			if (!foundNode) {
 				if (!treeElement.equals(moveUpToken)) {
 					atNode++;
 					if (atNode == attachedToNode) {
 						foundNode = true;
 						// atNode now represents depth
 						atNode = 0;
-					}				
+					}
 				}
 			} else {
 				if (!treeElement.equals(moveUpToken)) {
@@ -394,11 +449,11 @@ public class TreeMiner implements FrequentSubtreeFinder {
 					if (atNode == 0) {
 						break;
 					} else {
-						atNode --;
+						atNode--;
 					}
 				}
 			}
- 		}
+		}
 		return numChildren;
 	}
 }
