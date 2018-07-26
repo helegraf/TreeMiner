@@ -19,19 +19,19 @@ public class TreeMinerTest {
 	
 	@Test
 	public void testAddNodeToPrefixLastNode() {
-		System.out.println(treeMiner.addNodeToPrefix("a b -1", new ImmutablePair<String,Integer>("c", 1)));
+		System.out.println(TreeMiner.addNodeToTree("a b -1", new ImmutablePair<String,Integer>("c", 1)));
 	}
 	
 	@Test
 	public void testAddNodeToPrefixIntermediate() {
-		System.out.println(treeMiner.addNodeToPrefix("a b -1", new ImmutablePair<String,Integer>("c", 0)));
+		System.out.println(TreeMiner.addNodeToTree("a b -1", new ImmutablePair<String,Integer>("c", 0)));
 	}
 	
 	public void testAddNodeToRoot() {
-		System.out.println(treeMiner.addNodeToPrefix("a", new ImmutablePair<String,Integer>("c", 0)));
+		System.out.println(TreeMiner.addNodeToTree("a", new ImmutablePair<String,Integer>("c", 0)));
 	}
 	
 	public void testAddNodeToLongTree() {
-		System.out.println(treeMiner.addNodeToPrefix("a b c -1 e -1 -1 -1", new ImmutablePair<String,Integer>("d", 1)));
+		System.out.println(TreeMiner.addNodeToTree("a b c -1 e -1 -1 -1", new ImmutablePair<String,Integer>("d", 1)));
 	}
 }

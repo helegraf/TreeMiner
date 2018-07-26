@@ -26,6 +26,7 @@ task javadocJar(type: Jar) {
     classifier = 'javadoc'
 }
 
+// This is just for publishing to mavenLocal and included only for jitpack.io support
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -43,28 +44,7 @@ publishing {
                         url = 'https://opensource.org/licenses/MIT'
                     }
                 }
-                // developers {
-                //    developer {
-                //        id = 'johnd'
-                //        name = 'John Doe'
-                //        email = 'john.doe@example.com'
-                //    }
-                // }
-                //scm {
-                //    connection = 'scm:git:git://example.com/my-library.git'
-                //    developerConnection = 'scm:git:ssh://example.com/my-library.git'
-                //    url = 'http://example.com/my-library/'
-                //}
             }
         }
     }
-    //repositories {
-     //   maven {
-            // change URLs to point to your repos, e.g. http://my.org/repo
-            // def releasesRepoUrl = "$buildDir/repos/releases"
-            // def snapshotsRepoUrl = "$buildDir/repos/snapshots"
-            // url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-     //       mavenLocal()
-     //   }
-    //}
 }
