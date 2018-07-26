@@ -25,9 +25,8 @@ hs_err_pid*
 # Gradle
 /.gradle/
 /bin/
-/gradlew
-/gradlew.bat
 /build/
+!gradle-wrapper.jar
 
 # Eclipse
 /.classpath
