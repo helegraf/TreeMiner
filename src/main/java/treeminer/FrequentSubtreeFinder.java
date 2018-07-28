@@ -16,17 +16,6 @@ import java.util.List;
 public interface FrequentSubtreeFinder {
 
 	/**
-	 * Checks whether the given subtree occurs in the given tree.
-	 * 
-	 * @param tree
-	 *            The tree to check for the occurrence of a subtree
-	 * @param subtree
-	 *            The subtree which is searched for in the given tree
-	 * @return Whether the given subtree occurrs in the given tree at least once
-	 */
-	public boolean containsSubtree(String tree, String subtree);
-
-	/**
 	 * Finds all frequent subtrees in the given forest.
 	 * 
 	 * <p>

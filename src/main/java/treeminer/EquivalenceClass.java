@@ -68,7 +68,7 @@ public class EquivalenceClass {
 		// Discard the elements that have no scope list anymore
 		List<Pair<String, Integer>> newElementList = new ArrayList<Pair<String, Integer>>();
 		elementList.forEach(element -> {
-			String subTree = TreeMiner.addNodeToTree(prefix, element);
+			String subTree = TreeRepresentationUtils.addNodeToTree(prefix, element);
 			if (scopeLists.get(subTree) != null && scopeLists.get(subTree).size() > 0) {
 				newElementList.add(element);
 			}
