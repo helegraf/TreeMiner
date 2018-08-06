@@ -29,4 +29,12 @@ public interface FrequentSubtreeFinder {
 	 * @return The found frequent subtrees
 	 */
 	public List<String> findFrequentSubtrees(List<String> trees, int minSupport);
+
+	/**
+	 * Get the equivalence classes found during the last call of
+	 * {@link #findFrequentSubtrees(List, int)}.
+	 * 
+	 * @return The found equivalence classes
+	 */
+	public List<EquivalenceClass> getFoundEquivalenceClasses();
 }

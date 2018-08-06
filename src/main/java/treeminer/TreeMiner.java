@@ -337,6 +337,7 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		return foundTrees;
 	}
 
+	@Override
 	public List<EquivalenceClass> getFoundEquivalenceClasses() {
 		return foundEquivalenceClasses;
 	}
