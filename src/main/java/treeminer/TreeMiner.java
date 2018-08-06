@@ -307,7 +307,8 @@ public class TreeMiner implements FrequentSubtreeFinder {
 
 	/**
 	 * Extracts all the non-embedded frequent subtrees from the given equivalence
-	 * class and.
+	 * class and. Also removes the non-frequent elements from the equivalence
+	 * classes.
 	 * 
 	 * @param equivalenceClass
 	 *            The equivalence class containing the found frequent (embedded)
@@ -317,8 +318,12 @@ public class TreeMiner implements FrequentSubtreeFinder {
 	protected TreeSet<String> extractNonEmbeddedFrequentTrees(EquivalenceClass equivalenceClass, List<String> trees) {
 		TreeSet<String> foundTrees = new TreeSet<String>();
 		TreeMap<String, ScopeListRepresentation> newScopeLists = new TreeMap<String, ScopeListRepresentation>();
+		List<Pair<String, Integer>> newElementList = new ArrayList<Pair<String, Integer>>();
 
-		equivalenceClass.getScopeLists().forEach((subTree, scopeList) -> {
+		for (int i = 0; i < equivalenceClass.getElementList().size(); i++) {
+			String subTree = TreeRepresentationUtils.addNodeToTree(equivalenceClass.getPrefix(), equivalenceClass.getElementList().get(i));
+			ScopeListRepresentation scopeList = equivalenceClass.getScopeListFor(subTree);
+			
 			// for each scope list element of a subtree, check if it actually appears in
 			// that tree or is just embedded
 			int support = 0;
@@ -331,9 +336,13 @@ public class TreeMiner implements FrequentSubtreeFinder {
 			if (support >= minSupport) {
 				foundTrees.add(subTree);
 				newScopeLists.put(subTree, scopeList);
+				newElementList.add(equivalenceClass.getElementList().get(i));
+				
 			}
-		});
+		}
+		
 		equivalenceClass.setScopeLists(newScopeLists);
+		equivalenceClass.setElementList(newElementList);
 		return foundTrees;
 	}
 
