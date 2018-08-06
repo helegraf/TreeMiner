@@ -62,7 +62,6 @@ public class ScopeListRepresentation extends TreeSet<Triple<Integer, String, Sco
 
 		this.forEach(scopeListElementX -> {
 			other.forEach(scopeListElementY -> {
-				System.out.println("In scope test for " + scopeListElementX + " " + scopeListElementY);
 				if (scopeListElementX.getLeft().equals(scopeListElementY.getLeft())
 						&& scopeListElementX.getMiddle().equals(scopeListElementY.getMiddle())
 						&& scopeListElementX.getRight().contains(scopeListElementY.getRight())) {
