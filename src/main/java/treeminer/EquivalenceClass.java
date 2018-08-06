@@ -86,6 +86,16 @@ public class EquivalenceClass {
 	}
 
 	/**
+	 * Set the list of elements in this equivalence class.
+	 * 
+	 * @param elementList
+	 *            The list of element
+	 */
+	public void setElementList(List<Pair<String, Integer>> elementList) {
+		this.elementList = elementList;
+	}
+
+	/**
 	 * Add an element to the list of elements in this equivalence class.
 	 * 
 	 * @param element
