@@ -44,7 +44,12 @@ public class TreeMinerTest {
 	@Test
 	public void testFindSubtrees() {
 		System.out.println(treeMiner.findFrequentSubtrees(Arrays.asList("A B -1 C -1", "A", "A C -1", "A B D -1 -1"),1));
-		System.out.println(treeMiner.getFoundEquivalenceClasses());
+		for (double[] chara: treeMiner.getCharacterizationsOfTrainingExamples()) {
+			for (double number: chara) {
+				System.out.print(number + ", ");
+			}
+			System.out.println();
+		}
 	}
 	
 	public static void main (String [] args) {

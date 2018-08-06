@@ -24,11 +24,14 @@ import org.apache.commons.lang3.tuple.Triple;
 public class TreeMiner implements FrequentSubtreeFinder {
 
 	private int minSupport;
+	private int numTrees;
 	private List<EquivalenceClass> foundEquivalenceClasses;
+	private int numFoundPatterns;
 
 	@Override
 	public List<String> findFrequentSubtrees(List<String> trees, int minSupport) {
 		this.minSupport = minSupport;
+		this.numTrees = trees.size();
 		this.foundEquivalenceClasses = new ArrayList<EquivalenceClass>();
 
 		EquivalenceClass f1 = findFrequentF1Subtrees(trees);
@@ -45,6 +48,7 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		foundEquivalenceClasses.forEach(foundClass -> {
 			foundFrequentTrees.addAll(extractNonEmbeddedFrequentTrees(foundClass, trees));
 		});
+		numFoundPatterns = foundFrequentTrees.size();
 
 		return new ArrayList<String>(foundFrequentTrees);
 	}
@@ -321,9 +325,10 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		List<Pair<String, Integer>> newElementList = new ArrayList<Pair<String, Integer>>();
 
 		for (int i = 0; i < equivalenceClass.getElementList().size(); i++) {
-			String subTree = TreeRepresentationUtils.addNodeToTree(equivalenceClass.getPrefix(), equivalenceClass.getElementList().get(i));
+			String subTree = TreeRepresentationUtils.addNodeToTree(equivalenceClass.getPrefix(),
+					equivalenceClass.getElementList().get(i));
 			ScopeListRepresentation scopeList = equivalenceClass.getScopeListFor(subTree);
-			
+
 			// for each scope list element of a subtree, check if it actually appears in
 			// that tree or is just embedded
 			int support = 0;
@@ -337,10 +342,10 @@ public class TreeMiner implements FrequentSubtreeFinder {
 				foundTrees.add(subTree);
 				newScopeLists.put(subTree, scopeList);
 				newElementList.add(equivalenceClass.getElementList().get(i));
-				
+
 			}
 		}
-		
+
 		equivalenceClass.setScopeLists(newScopeLists);
 		equivalenceClass.setElementList(newElementList);
 		return foundTrees;
@@ -349,5 +354,22 @@ public class TreeMiner implements FrequentSubtreeFinder {
 	@Override
 	public List<EquivalenceClass> getFoundEquivalenceClasses() {
 		return foundEquivalenceClasses;
+	}
+
+	@Override
+	public double[][] getCharacterizationsOfTrainingExamples() {
+		double[][] treesWithPatternOccurrences = new double[numTrees][numFoundPatterns];
+
+		int currentPattern = 0;
+		for (EquivalenceClass equivalenceClass : foundEquivalenceClasses) {
+			for (String pattern : equivalenceClass.getScopeLists().navigableKeySet()) {
+				for (Triple<Integer, String, Scope> patternOccurence : equivalenceClass.getScopeListFor(pattern)) {
+					treesWithPatternOccurrences[patternOccurence.getLeft()][currentPattern] = 1;
+				}
+				currentPattern++;
+			}
+		}
+
+		return treesWithPatternOccurrences;
 	}
 }

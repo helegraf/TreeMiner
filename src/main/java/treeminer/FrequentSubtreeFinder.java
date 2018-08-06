@@ -37,4 +37,13 @@ public interface FrequentSubtreeFinder {
 	 * @return The found equivalence classes
 	 */
 	public List<EquivalenceClass> getFoundEquivalenceClasses();
+
+	/**
+	 * Get which of the training example trees contain which pattern. Returns a
+	 * matrix m where m[i][j]=1 indicates that pattern j appears in tree i,
+	 * otherwise m[i][j]=0.
+	 * 
+	 * @return A matrix indicating pattern occurrences
+	 */
+	double[][] getCharacterizationsOfTrainingExamples();
 }
