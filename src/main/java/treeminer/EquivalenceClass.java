@@ -1,8 +1,9 @@
 package treeminer;
 
 import java.util.ArrayList;
-import java.util.TreeMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.TreeMap;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -32,7 +33,7 @@ public class EquivalenceClass {
 	public EquivalenceClass(String prefix, List<Pair<String, Integer>> elementList) {
 		this.prefix = prefix;
 		this.elementList = elementList;
-		this.scopeLists = new TreeMap<String, ScopeListRepresentation>();
+		this.scopeLists = new TreeMap<>();
 	}
 
 	/**
@@ -43,8 +44,8 @@ public class EquivalenceClass {
 	 */
 	public EquivalenceClass(String prefix) {
 		this.prefix = prefix;
-		this.elementList = new ArrayList<Pair<String, Integer>>();
-		this.scopeLists = new TreeMap<String, ScopeListRepresentation>();
+		this.elementList = new ArrayList<>();
+		this.scopeLists = new TreeMap<>();
 	}
 
 	/**
@@ -57,19 +58,25 @@ public class EquivalenceClass {
 	 */
 	public void discardNonFrequentElements(int minSupport) {
 		// Check the minimum support in the scope lists
-		TreeMap<String, ScopeListRepresentation> newScopeLists = new TreeMap<String, ScopeListRepresentation>();
+		TreeMap<String, ScopeListRepresentation> newScopeLists = new TreeMap<>();
 		scopeLists.forEach((label, list) -> {
+			// Discard scope lists with not enough occurrences
 			if (list.size() >= minSupport) {
-				newScopeLists.put(label, list);
+				// Discard scope lists with not enough distinct occurrences
+				HashSet<Integer> distinctOccurrences = new HashSet<>();
+				list.forEach(scope -> distinctOccurrences.add(scope.getLeft()));
+				if (distinctOccurrences.size() >= minSupport) {
+					newScopeLists.put(label, list);
+				}
 			}
 		});
 		scopeLists = newScopeLists;
 
 		// Discard the elements that have no scope list anymore
-		List<Pair<String, Integer>> newElementList = new ArrayList<Pair<String, Integer>>();
+		List<Pair<String, Integer>> newElementList = new ArrayList<>();
 		elementList.forEach(element -> {
 			String subTree = TreeRepresentationUtils.addNodeToTree(prefix, element);
-			if (scopeLists.get(subTree) != null && scopeLists.get(subTree).size() > 0) {
+			if (scopeLists.get(subTree) != null && !scopeLists.get(subTree).isEmpty()) {
 				newElementList.add(element);
 			}
 		});

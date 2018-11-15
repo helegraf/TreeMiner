@@ -47,11 +47,7 @@ public class Scope implements Comparable<Scope> {
 	 */
 	public boolean contains(Scope other) {
 		if (this.lowerBound <= other.lowerBound && other.upperBound <= this.upperBound) {
-			if (other.upperBound == this.upperBound && other.lowerBound == this.lowerBound) {
-				return false;
-			} else {
-				return true;
-			}
+			return !(other.upperBound == this.upperBound && other.lowerBound == this.lowerBound);
 		} else {
 			return false;
 		}
@@ -136,5 +132,24 @@ public class Scope implements Comparable<Scope> {
 				return 1;
 			}
 		}
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == null || !o.getClass().equals(this.getClass())) {
+			return false;
+		}
+
+		Scope other = (Scope) o;
+
+		return other.upperBound == this.upperBound && other.lowerBound == this.lowerBound;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 42;
+		result = result * 37 + this.upperBound;
+		result = result * 37 + this.lowerBound;
+		return result;
 	}
 }

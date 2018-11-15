@@ -34,18 +34,16 @@ public class ScopeListRepresentation extends TreeSet<Triple<Integer, String, Sco
 	public ScopeListRepresentation outScopeJoin(ScopeListRepresentation other) {
 		ScopeListRepresentation newScopeList = new ScopeListRepresentation();
 
-		this.forEach(scopeListElementX -> {
-			other.forEach(scopeListElementY -> {
-				if (scopeListElementX.getLeft().equals(scopeListElementY.getLeft())
-						&& scopeListElementX.getMiddle().equals(scopeListElementY.getMiddle())
-						&& scopeListElementX.getRight().isStrictlyLessThan(scopeListElementY.getRight())) {
-					int treeId = scopeListElementY.getLeft();
-					String joinedMatchLabel = scopeListElementY.getMiddle();
-					Scope scope = scopeListElementY.getRight();
-					newScopeList.add(new ImmutableTriple<Integer, String, Scope>(treeId, joinedMatchLabel, scope));
-				}
-			});
-		});
+		this.forEach(scopeListElementX -> other.forEach(scopeListElementY -> {
+			if (scopeListElementX.getLeft().equals(scopeListElementY.getLeft())
+					&& scopeListElementX.getMiddle().equals(scopeListElementY.getMiddle())
+					&& scopeListElementX.getRight().isStrictlyLessThan(scopeListElementY.getRight())) {
+				int treeId = scopeListElementY.getLeft();
+				String joinedMatchLabel = scopeListElementY.getMiddle();
+				Scope scope = scopeListElementY.getRight();
+				newScopeList.add(new ImmutableTriple<Integer, String, Scope>(treeId, joinedMatchLabel, scope));
+			}
+		}));
 
 		return newScopeList;
 	}
@@ -60,18 +58,16 @@ public class ScopeListRepresentation extends TreeSet<Triple<Integer, String, Sco
 	public ScopeListRepresentation inScopeJoin(ScopeListRepresentation other) {
 		ScopeListRepresentation newScopeList = new ScopeListRepresentation();
 
-		this.forEach(scopeListElementX -> {
-			other.forEach(scopeListElementY -> {
-				if (scopeListElementX.getLeft().equals(scopeListElementY.getLeft())
-						&& scopeListElementX.getMiddle().equals(scopeListElementY.getMiddle())
-						&& scopeListElementX.getRight().contains(scopeListElementY.getRight())) {
-					int treeId = scopeListElementY.getLeft();
-					String joinedMatchLabel = scopeListElementY.getMiddle();
-					Scope scope = scopeListElementY.getRight();
-					newScopeList.add(new ImmutableTriple<Integer, String, Scope>(treeId, joinedMatchLabel, scope));
-				}
-			});
-		});
+		this.forEach(scopeListElementX -> other.forEach(scopeListElementY -> {
+			if (scopeListElementX.getLeft().equals(scopeListElementY.getLeft())
+					&& scopeListElementX.getMiddle().equals(scopeListElementY.getMiddle())
+					&& scopeListElementX.getRight().contains(scopeListElementY.getRight())) {
+				int treeId = scopeListElementY.getLeft();
+				String joinedMatchLabel = scopeListElementY.getMiddle();
+				Scope scope = scopeListElementY.getRight();
+				newScopeList.add(new ImmutableTriple<Integer, String, Scope>(treeId, joinedMatchLabel, scope));
+			}
+		}));
 
 		return newScopeList;
 	}

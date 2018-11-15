@@ -32,7 +32,7 @@ public class TreeMiner implements FrequentSubtreeFinder {
 	public List<String> findFrequentSubtrees(List<String> trees, int minSupport) {
 		this.minSupport = minSupport;
 		this.numTrees = trees.size();
-		this.foundEquivalenceClasses = new ArrayList<EquivalenceClass>();
+		this.foundEquivalenceClasses = new ArrayList<>();
 
 		EquivalenceClass f1 = findFrequentF1Subtrees(trees);
 		foundEquivalenceClasses.add(f1);
@@ -40,17 +40,14 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		List<EquivalenceClass> f2Classes = findFrequentF2Subtrees(f1, trees);
 		foundEquivalenceClasses.addAll(f2Classes);
 
-		f2Classes.forEach(f2class -> {
-			findFrequentSubtrees(f2class);
-		});
+		f2Classes.forEach(elem -> findFrequentSubtrees(elem, trees));
 
-		TreeSet<String> foundFrequentTrees = new TreeSet<String>();
-		foundEquivalenceClasses.forEach(foundClass -> {
-			foundFrequentTrees.addAll(extractNonEmbeddedFrequentTrees(foundClass, trees));
-		});
+		TreeSet<String> foundFrequentTrees = new TreeSet<>();
+		foundEquivalenceClasses
+				.forEach(foundClass -> foundFrequentTrees.addAll(extractNonEmbeddedFrequentTrees(foundClass, trees)));
 		numFoundPatterns = foundFrequentTrees.size();
 
-		return new ArrayList<String>(foundFrequentTrees);
+		return new ArrayList<>(foundFrequentTrees);
 	}
 
 	/**
@@ -61,16 +58,16 @@ public class TreeMiner implements FrequentSubtreeFinder {
 	 * @return The generated EuivalenceClass
 	 */
 	protected EquivalenceClass findFrequentF1Subtrees(List<String> trees) {
-		HashMap<String, Integer> labelFrequencies = new HashMap<String, Integer>();
+		HashMap<String, Integer> labelFrequencies = new HashMap<>();
 
 		// For each tree
 		for (String tree : trees) {
 			// Break up tree in its labels
-			String[] labels = tree.split(TreeRepresentationUtils.treeNodeSeparator);
+			String[] labels = tree.split(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
 
 			// For each label, increase the frequency if found
 			for (String label : labels) {
-				if (!label.equals(TreeRepresentationUtils.moveUpToken)) {
+				if (!label.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
 					if (labelFrequencies.containsKey(label)) {
 						labelFrequencies.put(label, labelFrequencies.get(label) + 1);
 					} else {
@@ -81,7 +78,7 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		}
 
 		// Check which elements have at least the minimal support
-		TreeSet<Pair<String, Integer>> elementList = new TreeSet<Pair<String, Integer>>();
+		TreeSet<Pair<String, Integer>> elementList = new TreeSet<>();
 		labelFrequencies.forEach((label, frequency) -> {
 			if (frequency >= minSupport) {
 				elementList.add(new ImmutablePair<String, Integer>(label, -1));
@@ -102,10 +99,10 @@ public class TreeMiner implements FrequentSubtreeFinder {
 	 */
 	protected List<EquivalenceClass> findFrequentF2Subtrees(EquivalenceClass f1, List<String> trees) {
 		// Generate possible candidate equivalence classes with their elements
-		List<EquivalenceClass> candidateEquivalenceClasses = new ArrayList<EquivalenceClass>();
+		List<EquivalenceClass> candidateEquivalenceClasses = new ArrayList<>();
 		List<Pair<String, Integer>> f1Elements = f1.getElementList();
 		for (int i = 0; i < f1Elements.size(); i++) {
-			List<Pair<String, Integer>> elementList = new ArrayList<Pair<String, Integer>>();
+			List<Pair<String, Integer>> elementList = new ArrayList<>();
 			for (int j = 0; j < f1Elements.size(); j++) {
 				elementList.add(new ImmutablePair<String, Integer>(f1Elements.get(j).getLeft(), 0));
 			}
@@ -113,13 +110,14 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		}
 
 		// Generate candidate scope lists for the candidate equivalence classes
-		TreeMap<String, ScopeListRepresentation> mapF2PatternToOccurence = new TreeMap<String, ScopeListRepresentation>();
-		TreeMap<String, ScopeListRepresentation> mapF1PatternToOccurence = new TreeMap<String, ScopeListRepresentation>();
+		TreeMap<String, ScopeListRepresentation> mapF2PatternToOccurence = new TreeMap<>();
+		TreeMap<String, ScopeListRepresentation> mapF1PatternToOccurence = new TreeMap<>();
 		f1.getElementList().forEach(pairX -> {
 			mapF1PatternToOccurence.put(pairX.getLeft(), new ScopeListRepresentation());
 			f1.getElementList().forEach(pairY -> {
-				String pattern = pairX.getLeft() + TreeRepresentationUtils.treeNodeSeparator + pairY.getLeft()
-						+ TreeRepresentationUtils.treeNodeSeparator + TreeRepresentationUtils.moveUpToken;
+				String pattern = String.format("%s%s%s%s%s", pairX.getLeft(),
+						TreeRepresentationUtils.TREE_NODE_SEPARATOR, pairY.getLeft(),
+						TreeRepresentationUtils.TREE_NODE_SEPARATOR, TreeRepresentationUtils.MOVE_UP_TOKEN);
 				ScopeListRepresentation occurrences = new ScopeListRepresentation();
 				mapF2PatternToOccurence.put(pattern, occurrences);
 			});
@@ -129,7 +127,7 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		// For each tree, iterate over it twice to find scopes of nodes first
 		for (int i = 0; i < trees.size(); i++) {
 			String tree = trees.get(i);
-			String[] treeRepresentation = tree.split(TreeRepresentationUtils.treeNodeSeparator);
+			String[] treeRepresentation = tree.split(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
 
 			// Find the scope of each node in the tree
 			Scope[] nodeScopes = new Scope[(int) Math.ceil(treeRepresentation.length / 2.0)];
@@ -138,10 +136,10 @@ public class TreeMiner implements FrequentSubtreeFinder {
 				nodeScopes[j] = new Scope();
 			}
 			int atNode = -1;
-			List<Integer> openScopes = new ArrayList<Integer>();
+			List<Integer> openScopes = new ArrayList<>();
 			StringBuilder matchLabelBuilder = new StringBuilder();
 			for (String treeElement : treeRepresentation) {
-				if (!treeElement.equals(TreeRepresentationUtils.moveUpToken)) {
+				if (!treeElement.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
 					// Start the scope of the current node
 					atNode++;
 					nodeScopes[atNode].setLowerBound(atNode);
@@ -153,7 +151,8 @@ public class TreeMiner implements FrequentSubtreeFinder {
 					nodeScopes[closeScopeIndex].setUpperBound(atNode);
 					openScopes.remove(openScopes.get(openScopes.size() - 1));
 				}
-				matchLabelBuilder.append(treeElement + TreeRepresentationUtils.treeNodeSeparator);
+				matchLabelBuilder.append(treeElement);
+				matchLabelBuilder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
 			}
 			// First node has to be closed separately because it doesn't have a moveUpToken
 			nodeScopes[0].setUpperBound(nodeScopes.length - 1);
@@ -162,11 +161,11 @@ public class TreeMiner implements FrequentSubtreeFinder {
 			atNode = -1;
 			for (int j = 0; j < treeRepresentation.length; j++) {
 				String treeElement = treeRepresentation[j];
-				if (!treeElement.equals(TreeRepresentationUtils.moveUpToken)) {
+				if (!treeElement.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
 					atNode++;
 					// Add the found single pattern
-					Triple<Integer, String, Scope> entry = new ImmutableTriple<Integer, String, Scope>(i,
-							matchLabels[atNode], nodeScopes[atNode]);
+					Triple<Integer, String, Scope> entry = new ImmutableTriple<>(i, matchLabels[atNode],
+							nodeScopes[atNode]);
 					if (mapF1PatternToOccurence.get(treeElement) != null) {
 						mapF1PatternToOccurence.get(treeElement).add(entry);
 					}
@@ -176,18 +175,18 @@ public class TreeMiner implements FrequentSubtreeFinder {
 					int childNumber = 0;
 					for (int k = j + 1; k < treeRepresentation.length; k++) {
 						String potentialChild = treeRepresentation[k];
-						if (!potentialChild.equals(TreeRepresentationUtils.moveUpToken)) {
+						if (!potentialChild.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
 							childLevel++;
 							childNumber++;
 
-							Triple<Integer, String, Scope> f2entry = new ImmutableTriple<Integer, String, Scope>(i,
-									matchLabels[atNode], nodeScopes[atNode + childNumber]);
-							if (mapF2PatternToOccurence.get(treeElement + TreeRepresentationUtils.treeNodeSeparator
-									+ treeRepresentation[k] + TreeRepresentationUtils.treeNodeSeparator
-									+ TreeRepresentationUtils.moveUpToken) != null) {
-								mapF2PatternToOccurence.get(treeElement + TreeRepresentationUtils.treeNodeSeparator
-										+ treeRepresentation[k] + TreeRepresentationUtils.treeNodeSeparator
-										+ TreeRepresentationUtils.moveUpToken).add(f2entry);
+							Triple<Integer, String, Scope> f2entry = new ImmutableTriple<>(i, matchLabels[atNode],
+									nodeScopes[atNode + childNumber]);
+							ScopeListRepresentation list = mapF2PatternToOccurence.get(String.format("%s%s%s%s%s",
+									treeElement, TreeRepresentationUtils.TREE_NODE_SEPARATOR, treeRepresentation[k],
+									TreeRepresentationUtils.TREE_NODE_SEPARATOR,
+									TreeRepresentationUtils.MOVE_UP_TOKEN));
+							if (list != null) {
+								list.add(f2entry);
 							}
 
 						} else {
@@ -199,16 +198,15 @@ public class TreeMiner implements FrequentSubtreeFinder {
 					}
 				}
 			}
-
 		}
 
 		// Set the found scope lists for f1
 		f1.setScopeLists(mapF1PatternToOccurence);
 
 		// Assemble scope lists for f2
-		List<EquivalenceClass> newEquivalenceClasses = new ArrayList<EquivalenceClass>();
+		List<EquivalenceClass> newEquivalenceClasses = new ArrayList<>();
 		candidateEquivalenceClasses.forEach(equivalenceClass -> {
-			TreeMap<String, ScopeListRepresentation> scopeLists = new TreeMap<String, ScopeListRepresentation>();
+			TreeMap<String, ScopeListRepresentation> scopeLists = new TreeMap<>();
 			equivalenceClass.getElementList().forEach(element -> {
 				String label = TreeRepresentationUtils.addNodeToTree(equivalenceClass.getPrefix(), element);
 				ScopeListRepresentation scopeList = mapF2PatternToOccurence.get(label);
@@ -216,7 +214,7 @@ public class TreeMiner implements FrequentSubtreeFinder {
 			});
 			equivalenceClass.setScopeLists(scopeLists);
 			equivalenceClass.discardNonFrequentElements(minSupport);
-			if (equivalenceClass.getElementList().size() > 0) {
+			if (!equivalenceClass.getElementList().isEmpty()) {
 				newEquivalenceClasses.add(equivalenceClass);
 			}
 		});
@@ -231,19 +229,32 @@ public class TreeMiner implements FrequentSubtreeFinder {
 	 * @param equivalenceClass
 	 *            The equivalence class from which the new classes are derived
 	 */
-	protected void findFrequentSubtrees(EquivalenceClass equivalenceClass) {
+	protected void findFrequentSubtrees(EquivalenceClass equivalenceClass, List<String> trees) {
 		// For (x, i) element P
 		for (Pair<String, Integer> XIelement : equivalenceClass.getElementList()) {
 			// Create a new empty equivalence class as a result of appending x to node i to
 			// the prefix in its equivalence class
 			String newPrefix = TreeRepresentationUtils.addNodeToTree(equivalenceClass.getPrefix(), XIelement);
-			EquivalenceClass P_xi = new EquivalenceClass(newPrefix);
+
+			// Check if the new prefix does even occur somewhere directly (& not
+			// indirectly!)
+			boolean occurrsDirectly = false;			
+			for (Triple<Integer,String,Scope> scopeListElement : equivalenceClass.getScopeListFor(newPrefix)) {
+				if (TreeRepresentationUtils.containsSubtree(newPrefix, trees.get(scopeListElement.getLeft()))) {
+					occurrsDirectly = true;
+				}
+			}
+			if (!occurrsDirectly) {
+				continue;
+			}
+
+			EquivalenceClass pXi = new EquivalenceClass(newPrefix);
 
 			// For (y, j) element P
 			for (Pair<String, Integer> YJElement : equivalenceClass.getElementList()) {
 				// i = j case
 				if (XIelement.getRight() == YJElement.getRight()) {
-					// Test for (y, n_i)
+					// Test (y, n_i)
 					ScopeListRepresentation xScopeList = equivalenceClass.getScopeListFor(
 							TreeRepresentationUtils.addNodeToTree(equivalenceClass.getPrefix(), XIelement));
 					ScopeListRepresentation yScopeList = equivalenceClass.getScopeListFor(
@@ -258,24 +269,23 @@ public class TreeMiner implements FrequentSubtreeFinder {
 						int numberOfChildrenOfParentNode = TreeRepresentationUtils
 								.findNumberOfChildrenOfNode(equivalenceClass.getPrefix(), XIelement.getRight());
 						int newXPosition = XIelement.getRight() + 1 + numberOfChildrenOfParentNode;
-						Pair<String, Integer> newElement = new ImmutablePair<String, Integer>(YJElement.getLeft(),
-								newXPosition);
-						P_xi.addElement(newElement);
-						P_xi.addScopeListFor(TreeRepresentationUtils.addNodeToTree(P_xi.getPrefix(), newElement),
+						Pair<String, Integer> newElement = new ImmutablePair<>(YJElement.getLeft(), newXPosition);
+						pXi.addElement(newElement);
+						pXi.addScopeListFor(TreeRepresentationUtils.addNodeToTree(pXi.getPrefix(), newElement),
 								newScopeList);
 					}
 
-					// Test for (y, j)
+					// Test (y, j)
 					newScopeList = xScopeList.outScopeJoin(yScopeList);
 
 					if (newScopeList.size() >= minSupport) {
-						P_xi.addElement(YJElement);
-						P_xi.addScopeListFor(TreeRepresentationUtils.addNodeToTree(P_xi.getPrefix(), YJElement),
+						pXi.addElement(YJElement);
+						pXi.addScopeListFor(TreeRepresentationUtils.addNodeToTree(pXi.getPrefix(), YJElement),
 								newScopeList);
 					}
 					// i > j case
 				} else if (XIelement.getRight() > YJElement.getRight()) {
-					// Test for (y, j)
+					// Test (y, j)
 					ScopeListRepresentation xScopeList = equivalenceClass.getScopeListFor(
 							TreeRepresentationUtils.addNodeToTree(equivalenceClass.getPrefix(), XIelement));
 					ScopeListRepresentation yScopeList = equivalenceClass.getScopeListFor(
@@ -287,24 +297,21 @@ public class TreeMiner implements FrequentSubtreeFinder {
 					ScopeListRepresentation newScopeList = xScopeList.outScopeJoin(yScopeList);
 
 					if (newScopeList.size() >= minSupport) {
-						P_xi.addElement(YJElement);
-						P_xi.addScopeListFor(TreeRepresentationUtils.addNodeToTree(P_xi.getPrefix(), YJElement),
+						pXi.addElement(YJElement);
+						pXi.addScopeListFor(TreeRepresentationUtils.addNodeToTree(pXi.getPrefix(), YJElement),
 								newScopeList);
 					}
-					// i < j case
-				} else {
-					// if i < j, no new tree can be added
-					continue;
+					// i < j case - nothing more can be added so we skip it
 				}
 			}
 
 			// If the found class is not empty
-			if (P_xi.getElementList().size() > 0) {
+			if (!pXi.getElementList().isEmpty()) {
 				// Add the found class to all found classes
-				foundEquivalenceClasses.add(P_xi);
+				foundEquivalenceClasses.add(pXi);
 
 				// Find the frequent subtrees for the new equivalence class
-				findFrequentSubtrees(P_xi);
+				findFrequentSubtrees(pXi, trees);
 			}
 		}
 	}
@@ -320,9 +327,9 @@ public class TreeMiner implements FrequentSubtreeFinder {
 	 * @return The found non-embedded frequent subtrees
 	 */
 	protected TreeSet<String> extractNonEmbeddedFrequentTrees(EquivalenceClass equivalenceClass, List<String> trees) {
-		TreeSet<String> foundTrees = new TreeSet<String>();
-		TreeMap<String, ScopeListRepresentation> newScopeLists = new TreeMap<String, ScopeListRepresentation>();
-		List<Pair<String, Integer>> newElementList = new ArrayList<Pair<String, Integer>>();
+		TreeSet<String> foundTrees = new TreeSet<>();
+		TreeMap<String, ScopeListRepresentation> newScopeLists = new TreeMap<>();
+		List<Pair<String, Integer>> newElementList = new ArrayList<>();
 
 		for (int i = 0; i < equivalenceClass.getElementList().size(); i++) {
 			String subTree = TreeRepresentationUtils.addNodeToTree(equivalenceClass.getPrefix(),

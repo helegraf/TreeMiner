@@ -13,19 +13,22 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 public class TreeRepresentationUtils {
 
+	private TreeRepresentationUtils() {
+	}
+
 	/**
 	 * The token that is used to separate tree nodes in the String representation of
 	 * a tree. It cannot appear in the labels of nodes, as it is used to separate
 	 * nodes.
 	 */
-	public static final String treeNodeSeparator = " ";
+	public static final String TREE_NODE_SEPARATOR = " ";
 
 	/**
 	 * The token that is used to represent moving up to a parent node in the String
 	 * representation of a tree. There cannot be a label in a tree representation
 	 * whose name is equal to this token.
 	 */
-	public static final String moveUpToken = "-1";
+	public static final String MOVE_UP_TOKEN = "-1";
 
 	/**
 	 * Creates the String representation of the tree that is created when appending
@@ -43,10 +46,10 @@ public class TreeRepresentationUtils {
 		builder.append(node);
 
 		children.forEach(child -> {
-			builder.append(treeNodeSeparator);
+			builder.append(TREE_NODE_SEPARATOR);
 			builder.append(child);
-			builder.append(treeNodeSeparator);
-			builder.append(moveUpToken);
+			builder.append(TREE_NODE_SEPARATOR);
+			builder.append(MOVE_UP_TOKEN);
 		});
 
 		return builder.toString();
@@ -69,12 +72,17 @@ public class TreeRepresentationUtils {
 
 		// Check if the tree consists of only a root node
 		if (tree.length() == 1) {
-			return tree + TreeRepresentationUtils.treeNodeSeparator + node.getLeft()
-					+ TreeRepresentationUtils.treeNodeSeparator + TreeRepresentationUtils.moveUpToken;
+			StringBuilder builder = new StringBuilder();
+			builder.append(tree);
+			builder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
+			builder.append(node.getLeft());
+			builder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
+			builder.append(TreeRepresentationUtils.MOVE_UP_TOKEN);
+			return builder.toString();
 		}
 
 		StringBuilder builder = new StringBuilder();
-		String[] treeElements = tree.split(TreeRepresentationUtils.treeNodeSeparator);
+		String[] treeElements = tree.split(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
 		boolean foundNode = false;
 		boolean attachedNode = false;
 		int atNode = -1;
@@ -84,7 +92,7 @@ public class TreeRepresentationUtils {
 			// Find the node where the node shall be attached
 			if (!foundNode) {
 				// If the element is a node
-				if (!treeElement.equals(TreeRepresentationUtils.moveUpToken)) {
+				if (!treeElement.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
 					// Increase the count
 					atNode++;
 					if (atNode == node.getRight()) {
@@ -94,40 +102,48 @@ public class TreeRepresentationUtils {
 					}
 				}
 				// Append the current node to the tree
-				builder.append(treeElement + TreeRepresentationUtils.treeNodeSeparator);
+				builder.append(treeElement);
+				builder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
 			} else if (!attachedNode) {
 				// Find out if we can directly attach the child now
 				if (atNode == 0) {
 					// Check if there are no more children (would move up again here!)
-					if (treeElements[i].equals(TreeRepresentationUtils.moveUpToken)) {
-						builder.append(node.getLeft() + TreeRepresentationUtils.treeNodeSeparator
-								+ TreeRepresentationUtils.moveUpToken + TreeRepresentationUtils.treeNodeSeparator);
+					if (treeElements[i].equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
+						builder.append(node.getLeft());
+						builder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
+						builder.append(TreeRepresentationUtils.MOVE_UP_TOKEN);
+						builder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
 						attachedNode = true;
 					} else {
 						atNode--;
 					}
 				} else {
-					atNode = (treeElement.equals(TreeRepresentationUtils.moveUpToken)) ? atNode + 1 : atNode - 1;
+					atNode = (treeElement.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) ? atNode + 1 : atNode - 1;
 				}
-				builder.append(treeElement + TreeRepresentationUtils.treeNodeSeparator);
+				builder.append(treeElement);
+				builder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
 			} else {
 				// In this case we have found and attached the node and just need to add all the
 				// -1
-				builder.append(treeElement + TreeRepresentationUtils.treeNodeSeparator);
+				builder.append(treeElement);
+				builder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
 			}
 		}
 
 		// Last node
 		if (!attachedNode) {
 			if (atNode == 0) {
-				builder.append(node.getLeft() + TreeRepresentationUtils.treeNodeSeparator
-						+ TreeRepresentationUtils.moveUpToken + TreeRepresentationUtils.treeNodeSeparator);
+				builder.append(node.getLeft());
+				builder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
+				builder.append(TreeRepresentationUtils.MOVE_UP_TOKEN);
+				builder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
 				builder.append(treeElements[treeElements.length - 1]);
 			} else {
-
-				builder.append(treeElements[treeElements.length - 1] + TreeRepresentationUtils.treeNodeSeparator);
-				builder.append(node.getLeft() + TreeRepresentationUtils.treeNodeSeparator
-						+ TreeRepresentationUtils.moveUpToken);
+				builder.append(treeElements[treeElements.length - 1]);
+				builder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
+				builder.append(node.getLeft());
+				builder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
+				builder.append(TreeRepresentationUtils.MOVE_UP_TOKEN);
 			}
 		} else {
 			builder.append(treeElements[treeElements.length - 1]);
@@ -150,15 +166,15 @@ public class TreeRepresentationUtils {
 		StringBuilder builder = new StringBuilder();
 		nodes.forEach(node -> {
 			builder.append(node);
-			builder.append(treeNodeSeparator);
+			builder.append(TREE_NODE_SEPARATOR);
 		});
 
 		for (int i = 0; i < nodes.size() - 2; i++) {
-			builder.append(moveUpToken);
-			builder.append(treeNodeSeparator);
+			builder.append(MOVE_UP_TOKEN);
+			builder.append(TREE_NODE_SEPARATOR);
 		}
 
-		builder.append(moveUpToken);
+		builder.append(MOVE_UP_TOKEN);
 
 		return builder.toString();
 	}
@@ -183,7 +199,7 @@ public class TreeRepresentationUtils {
 		for (String treeElement : treeElements) {
 			if (!foundNode) {
 				// If we haven't found the node, keep searching
-				if (!treeElement.equals(TreeRepresentationUtils.moveUpToken)) {
+				if (!treeElement.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
 					atNode++;
 					if (atNode == node) {
 						foundNode = true;
@@ -192,7 +208,7 @@ public class TreeRepresentationUtils {
 					}
 				}
 			} else {
-				if (!treeElement.equals(TreeRepresentationUtils.moveUpToken)) {
+				if (!treeElement.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
 					// We have found a new child
 					atNode++;
 					numChildren++;
@@ -222,8 +238,8 @@ public class TreeRepresentationUtils {
 	 */
 	public static boolean containsSubtree(String tree, String subtree) {
 		// Split the given trees in their elements
-		String[] treeElements = tree.split(TreeRepresentationUtils.treeNodeSeparator);
-		String[] subTreeElements = subtree.split(TreeRepresentationUtils.treeNodeSeparator);
+		String[] treeElements = tree.split(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
+		String[] subTreeElements = subtree.split(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
 
 		// Represents the next node from the subtree we are trying to match in the tree
 		int nextNode = 0;
@@ -244,7 +260,7 @@ public class TreeRepresentationUtils {
 					}
 				} else {
 					// We have found a matching node, but are in an unrelated branch of the tree
-					if (treeElements[i].equals(TreeRepresentationUtils.moveUpToken)) {
+					if (treeElements[i].equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
 						// We are moving back to the parent
 						childNum--;
 					} else {
@@ -256,7 +272,7 @@ public class TreeRepresentationUtils {
 				// We have found an unrelated node. If we haven't found the start of the pattern
 				// yet, proceed iteration.
 				if (nextNode != 0) {
-					if (treeElements[i].equals(TreeRepresentationUtils.moveUpToken)) {
+					if (treeElements[i].equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
 						if (childNum > 0) {
 							// If we have found a moveUpToken, and the current matched node has children
 							// that aren't in the pattern, we have moved closer to the parent again
