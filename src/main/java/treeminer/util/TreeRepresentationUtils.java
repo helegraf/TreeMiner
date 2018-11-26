@@ -1,4 +1,4 @@
-package treeminer;
+package treeminer.util;
 
 import java.util.List;
 

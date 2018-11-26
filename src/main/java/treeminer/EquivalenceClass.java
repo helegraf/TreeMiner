@@ -3,9 +3,12 @@ package treeminer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.commons.lang3.tuple.Pair;
+
+import treeminer.util.TreeRepresentationUtils;
 
 /**
  * Represents an equivalence class of found subtrees that all begin with the
@@ -18,7 +21,7 @@ public class EquivalenceClass {
 
 	private String prefix;
 	private List<Pair<String, Integer>> elementList;
-	private TreeMap<String, ScopeListRepresentation> scopeLists;
+	private SortedMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> scopeLists;
 
 	/**
 	 * Creates a new equivalence class with the given prefix and list of elements it
@@ -58,13 +61,13 @@ public class EquivalenceClass {
 	 */
 	public void discardNonFrequentElements(int minSupport) {
 		// Check the minimum support in the scope lists
-		TreeMap<String, ScopeListRepresentation> newScopeLists = new TreeMap<>();
+		TreeMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> newScopeLists = new TreeMap<>();
 		scopeLists.forEach((label, list) -> {
 			// Discard scope lists with not enough occurrences
 			if (list.size() >= minSupport) {
 				// Discard scope lists with not enough distinct occurrences
 				HashSet<Integer> distinctOccurrences = new HashSet<>();
-				list.forEach(scope -> distinctOccurrences.add(scope.getLeft()));
+				list.forEach(scope -> distinctOccurrences.add(scope.getTreeIndex()));
 				if (distinctOccurrences.size() >= minSupport) {
 					newScopeLists.put(label, list);
 				}
@@ -119,7 +122,7 @@ public class EquivalenceClass {
 	 *            The subtree for which to get the scope list
 	 * @return The scope list of the subtree
 	 */
-	public ScopeListRepresentation getScopeListFor(String subtree) {
+	public AScopeListRepresentation<? extends SimpleScopeListElement> getScopeListFor(String subtree) {
 		return scopeLists.get(subtree);
 	}
 
@@ -131,7 +134,7 @@ public class EquivalenceClass {
 	 * @param scopeList
 	 *            The occurrences of the subtree given by a scope list
 	 */
-	public void addScopeListFor(String subtree, ScopeListRepresentation scopeList) {
+	public void addScopeListFor(String subtree, AScopeListRepresentation<? extends SimpleScopeListElement> scopeList) {
 		scopeLists.put(subtree, scopeList);
 	}
 
@@ -140,7 +143,7 @@ public class EquivalenceClass {
 	 * 
 	 * @return The scope lists of this class
 	 */
-	public TreeMap<String, ScopeListRepresentation> getScopeLists() {
+	public SortedMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> getScopeLists() {
 		return scopeLists;
 	}
 
@@ -150,7 +153,7 @@ public class EquivalenceClass {
 	 * @param scopeLists
 	 *            The new scope lists
 	 */
-	public void setScopeLists(TreeMap<String, ScopeListRepresentation> scopeLists) {
+	public void setScopeLists(SortedMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> scopeLists) {
 		this.scopeLists = scopeLists;
 	}
 

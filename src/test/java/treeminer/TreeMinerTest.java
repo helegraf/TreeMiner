@@ -1,6 +1,5 @@
 package treeminer;
 
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -8,6 +7,8 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Before;
 import org.junit.Test;
+
+import treeminer.util.TreeRepresentationUtils;
 
 public class TreeMinerTest {
 
