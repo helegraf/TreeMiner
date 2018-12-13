@@ -8,6 +8,8 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import treeminer.scopelists.elements.SimpleScopeListElement;
+import treeminer.scopelists.representation.AScopeListRepresentation;
 import treeminer.util.TreeRepresentationUtils;
 
 /**
@@ -70,6 +72,8 @@ public class EquivalenceClass {
 				list.forEach(scope -> distinctOccurrences.add(scope.getTreeIndex()));
 				if (distinctOccurrences.size() >= minSupport) {
 					newScopeLists.put(label, list);
+				} else {
+					System.out.println("Discard non frequent element " + label);
 				}
 			}
 		});
@@ -135,6 +139,7 @@ public class EquivalenceClass {
 	 *            The occurrences of the subtree given by a scope list
 	 */
 	public void addScopeListFor(String subtree, AScopeListRepresentation<? extends SimpleScopeListElement> scopeList) {
+		System.out.println("ADding scope list for " + subtree);
 		scopeLists.put(subtree, scopeList);
 	}
 

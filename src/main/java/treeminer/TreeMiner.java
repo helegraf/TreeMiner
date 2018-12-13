@@ -1,17 +1,17 @@
 package treeminer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 
+import treeminer.initialization.TreeMinerGeneralInitializer;
+import treeminer.scopelists.elements.SimpleScopeListElement;
+import treeminer.scopelists.representation.AScopeListRepresentation;
 import treeminer.util.ScopeListRepresentationUtils;
 import treeminer.util.TreeRepresentationUtils;
 
@@ -39,10 +39,10 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		this.numTrees = trees.size();
 		this.foundEquivalenceClasses = new ArrayList<>();
 
-		EquivalenceClass f1 = findFrequentF1Subtrees(trees, minSupport);
+		EquivalenceClass f1 = TreeMinerGeneralInitializer.findFrequentF1Subtrees(trees, minSupport);
 		foundEquivalenceClasses.add(f1);
 
-		List<EquivalenceClass> f2Classes = findFrequentF2Subtrees(f1, trees);
+		List<EquivalenceClass> f2Classes = TreeMinerGeneralInitializer.findFrequentF2Subtrees(f1, trees, countMultipleOccurrences, minSupport);
 		foundEquivalenceClasses.addAll(f2Classes);
 
 		f2Classes.forEach(elem -> findFrequentSubtrees(elem, trees));
@@ -56,313 +56,6 @@ public class TreeMiner implements FrequentSubtreeFinder {
 	}
 
 	/**
-	 * Finds the initial equivalence class f1 that has an empty prefix and contains
-	 * all single nodes with a frequency of at least the minimum support. Does not
-	 * find the scope of nodes, only the elements of the equivalence class.
-	 * 
-	 * @return The generated EuivalenceClass
-	 */
-	protected EquivalenceClass findFrequentF1Subtrees(List<String> trees, int minSupport) {
-		HashMap<String, Integer> labelFrequencies = new HashMap<>();
-
-		// For each tree
-		for (String tree : trees) {
-			// Break up tree in its labels
-			String[] labels = tree.split(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
-
-			// For each label, increase the frequency if found
-			for (String label : labels) {
-				if (!label.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
-					if (labelFrequencies.containsKey(label)) {
-						labelFrequencies.put(label, labelFrequencies.get(label) + 1);
-					} else {
-						labelFrequencies.put(label, 1);
-					}
-				}
-			}
-		}
-
-		// Check which elements have at least the minimal support
-		TreeSet<Pair<String, Integer>> elementList = new TreeSet<>();
-		labelFrequencies.forEach((label, frequency) -> {
-			if (frequency >= minSupport) {
-				elementList.add(new ImmutablePair<String, Integer>(label, -1));
-			}
-		});
-
-		// Create equivalence class with empty prefix
-		return new EquivalenceClass("", new ArrayList<Pair<String, Integer>>(elementList));
-	}
-
-	/**
-	 * Finds the equivalence classes in f2 derived from the initial equivalence
-	 * class f1. Also finds the scopes of the elements in f1.
-	 * 
-	 * @param f1
-	 *            The initial equivalence class f1
-	 * @return The list of equivalence classes derived from f1 (f2)
-	 */
-	protected List<EquivalenceClass> findFrequentF2Subtrees(EquivalenceClass f1, List<String> trees) {
-		// Generate candidate scope lists for the candidate equivalence classes
-		TreeMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> mapF2PatternToOccurence = new TreeMap<>();
-		TreeMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> mapF1PatternToOccurence = new TreeMap<>();
-		f1.setScopeLists(mapF1PatternToOccurence);
-		generateCandidateScopeListsF1F2(f1, mapF2PatternToOccurence, mapF1PatternToOccurence);
-
-		// Find candidate scope list frequencies
-		for (int i = 0; i < trees.size(); i++) {
-			findPatternsInTree(trees.get(i), mapF2PatternToOccurence, mapF1PatternToOccurence, i);
-		}
-
-		// Assemble scope lists for f2
-		List<EquivalenceClass> candidateEquivalenceClasses = generateCandidateEquivalenceClassesF2(f1);
-		return filterF2CandidateClassesByPatternOccurrences(candidateEquivalenceClasses, mapF2PatternToOccurence);
-	}
-
-	private void generateCandidateScopeListsF1F2(EquivalenceClass f1,
-			TreeMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> f2ScopeLists,
-			TreeMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> f1ScopeLists) {
-		//Fill the scope lists with candidates
-		f1.getElementList().forEach(pairX -> {
-			if (countMultipleOccurrences) {
-				f1ScopeLists.put(pairX.getLeft(), new ScopeListRepresentation());
-			} else {
-				f2ScopeLists.put(pairX.getLeft(), new ScopeVectorListRepresentation());
-			}
-			f1.getElementList().forEach(pairY -> {
-				String pattern = String.format("%s%s%s%s%s", pairX.getLeft(),
-						TreeRepresentationUtils.TREE_NODE_SEPARATOR, pairY.getLeft(),
-						TreeRepresentationUtils.TREE_NODE_SEPARATOR, TreeRepresentationUtils.MOVE_UP_TOKEN);
-				ScopeListRepresentation occurrences = new ScopeListRepresentation();
-				f2ScopeLists.put(pattern, occurrences);
-			});
-		});
-	}
-
-	private void findPatternsInTree(String tree,
-			TreeMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> mapF2PatternToOccurence,
-			TreeMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> mapF1PatternToOccurence,
-			int i) {
-		String[] treeRepresentation = tree.split(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
-	
-		// Find the scope of each node in the tree
-		Scope[] nodeScopes = new Scope[(int) Math.ceil(treeRepresentation.length / 2.0)];
-		
-		if (countMultipleOccurrences) {
-			String[] matchLabels =  new String[(int) Math.ceil(treeRepresentation.length / 2.0)];
-			findNodeScopes(treeRepresentation, nodeScopes, matchLabels);
-			
-			// Find frequency of candidate elements in f1 and f2
-			findCandidateFrequencies((TreeMap<String, AScopeListRepresentation<ScopeListElement>>)mapF2PatternToOccurence, mapF1PatternToOccurence, i, treeRepresentation, nodeScopes,
-					matchLabels);
-		} else {
-			findNodeScopesNoMatchLabel(treeRepresentation, nodeScopes);
-			findCandidateFrequenciesNoMatchLabel(mapF2PatternToOccurence, mapF1PatternToOccurence, i, treeRepresentation, nodeScopes);
-		}
-	}
-	
-	private void findNodeScopes(String[] treeRepresentation, Scope[] nodeScopes, String[] matchLabels) {
-		for (int j = 0; j < nodeScopes.length; j++) {
-			nodeScopes[j] = new Scope();
-		}
-		int atNode = -1;
-		List<Integer> openScopes = new ArrayList<>();
-		StringBuilder matchLabelBuilder = new StringBuilder();
-		for (String treeElement : treeRepresentation) {
-			if (!treeElement.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
-				// Start the scope of the current node
-				atNode++;
-				nodeScopes[atNode].setLowerBound(atNode);
-				openScopes.add(atNode);
-				matchLabels[atNode] = matchLabelBuilder.toString().trim();
-			} else {
-				// End the scope of the most recently not closed scopes
-				int closeScopeIndex = openScopes.get(openScopes.size() - 1);
-				nodeScopes[closeScopeIndex].setUpperBound(atNode);
-				openScopes.remove(openScopes.get(openScopes.size() - 1));
-			}
-			matchLabelBuilder.append(treeElement);
-			matchLabelBuilder.append(TreeRepresentationUtils.TREE_NODE_SEPARATOR);
-		}
-		// First node has to be closed separately because it doesn't have a moveUpToken
-		nodeScopes[0].setUpperBound(nodeScopes.length - 1);
-	}
-
-	private void findNodeScopesNoMatchLabel(String [] treeRepresentation, Scope[] nodeScopes) {
-		for (int j = 0; j < nodeScopes.length; j++) {
-			nodeScopes[j] = new Scope();
-		}
-		int atNode = -1;
-		List<Integer> openScopes = new ArrayList<>();
-		for (String treeElement : treeRepresentation) {
-			if (!treeElement.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
-				// Start the scope of the current node
-				atNode++;
-				nodeScopes[atNode].setLowerBound(atNode);
-				openScopes.add(atNode);
-			} else {
-				// End the scope of the most recently not closed scopes
-				int closeScopeIndex = openScopes.get(openScopes.size() - 1);
-				nodeScopes[closeScopeIndex].setUpperBound(atNode);
-				openScopes.remove(openScopes.get(openScopes.size() - 1));
-			}
-		}
-		// First node has to be closed separately because it doesn't have a moveUpToken
-		nodeScopes[0].setUpperBound(nodeScopes.length - 1);
-	}
-
-	private void findCandidateFrequencies(
-			TreeMap<String, AScopeListRepresentation<ScopeListElement>> mapF2PatternToOccurence,
-			TreeMap<String, AScopeListRepresentation<ScopeListElement>> mapF1PatternToOccurence, int i,
-			String[] treeRepresentation, Scope[] nodeScopes, String[] matchLabels) {
-		int atNode = -1;
-		for (int j = 0; j < treeRepresentation.length; j++) {
-			String treeElement = treeRepresentation[j];
-			if (!treeElement.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
-				atNode++;
-				addNewPattern(mapF1PatternToOccurence, i, nodeScopes, matchLabels, atNode, treeElement);
-	
-				checkForDoublePattern(mapF2PatternToOccurence, i, treeRepresentation, nodeScopes, matchLabels, atNode,
-						j, treeElement);
-			}
-		}
-	}
-
-	private void addNewPattern(
-			TreeMap<String, AScopeListRepresentation<ScopeListElement>> mapF1PatternToOccurence, int i,
-			Scope[] nodeScopes, String[] matchLabels, int atNode, String treeElement) {
-		// Add the found single pattern
-		ScopeListElement entry = new ScopeListElement(i, matchLabels[atNode], nodeScopes[atNode]);
-		if (mapF1PatternToOccurence.get(treeElement) != null) {
-			mapF1PatternToOccurence.get(treeElement).add(entry);
-		}
-	}
-
-	private void checkForDoublePattern(
-			TreeMap<String, AScopeListRepresentation<ScopeListElement>> mapF2PatternToOccurence, int i,
-			String[] treeRepresentation, Scope[] nodeScopes, String[] matchLabels, int atNode, int j,
-			String treeElement) {
-		// Check for double pattern (find direct and indirect children of a node)
-		int childLevel = 0;
-		int childNumber = 0;
-		for (int k = j + 1; k < treeRepresentation.length; k++) {
-			String potentialChild = treeRepresentation[k];
-			if (!potentialChild.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
-				childLevel++;
-				childNumber++;
-	
-				ScopeListElement f2entry = new ScopeListElement(i, matchLabels[atNode],
-						nodeScopes[atNode + childNumber]);
-				AScopeListRepresentation<ScopeListElement> list = mapF2PatternToOccurence
-						.get(String.format("%s%s%s%s%s", treeElement, TreeRepresentationUtils.TREE_NODE_SEPARATOR,
-								treeRepresentation[k], TreeRepresentationUtils.TREE_NODE_SEPARATOR,
-								TreeRepresentationUtils.MOVE_UP_TOKEN));
-				if (list != null) {
-					list.add(f2entry);
-				}
-	
-			} else {
-				childLevel--;
-				if (childLevel == -1) {
-					break;
-				}
-			}
-		}
-	}
-	
-	private void findCandidateFrequenciesNoMatchLabel(
-			TreeMap<String, AScopeListRepresentation<ScopeVectorListElement>> mapF2PatternToOccurence,
-			TreeMap<String, AScopeListRepresentation<ScopeVectorListElement>> mapF1PatternToOccurence, int i,
-			String[] treeRepresentation, Scope[] nodeScopes) {
-		int atNode = -1;
-		for (int j = 0; j < treeRepresentation.length; j++) {
-			String treeElement = treeRepresentation[j];
-			if (!treeElement.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
-				atNode++;
-				addNewPatternNoMatchLabel(mapF1PatternToOccurence, i, nodeScopes, atNode, treeElement);
-	
-				checkForDoublePatternNoMatchLabel(mapF2PatternToOccurence, i, treeRepresentation, nodeScopes, atNode,
-						j, treeElement);
-			}
-		}
-	}
-	
-	private void addNewPatternNoMatchLabel(
-			TreeMap<String, AScopeListRepresentation<ScopeVectorListElement>> mapF1PatternToOccurence, int i,
-			Scope[] nodeScopes, int atNode, String treeElement) {
-		// Add the found single pattern
-		ScopeVectorListElement entry = new ScopeVectorListElement(i, matchLabels[atNode], nodeScopes[atNode]);
-		if (mapF1PatternToOccurence.get(treeElement) != null) {
-			mapF1PatternToOccurence.get(treeElement).add(entry);
-		}
-	}
-	
-	private void checkForDoublePatternNoMatchLabel(TreeMap<String, AScopeListRepresentation<ScopeVectorListElement>> mapF2PatternToOccurence, int i,
-			String[] treeRepresentation, Scope[] nodeScopes, int atNode, int j,
-			String treeElement) {
-		// Check for double pattern (find direct and indirect children of a node)
-		int childLevel = 0;
-		int childNumber = 0;
-		for (int k = j + 1; k < treeRepresentation.length; k++) {
-			String potentialChild = treeRepresentation[k];
-			if (!potentialChild.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
-				childLevel++;
-				childNumber++;
-	
-				ScopeVectorListElement f2entry = new ScopeVectorListElement(i, matchLabels[atNode],
-						nodeScopes[atNode + childNumber]);
-				AScopeListRepresentation<ScopeVectorListElement> list = mapF2PatternToOccurence
-						.get(String.format("%s%s%s%s%s", treeElement, TreeRepresentationUtils.TREE_NODE_SEPARATOR,
-								treeRepresentation[k], TreeRepresentationUtils.TREE_NODE_SEPARATOR,
-								TreeRepresentationUtils.MOVE_UP_TOKEN));
-				if (list != null) {
-					list.add(f2entry);
-				}
-	
-			} else {
-				childLevel--;
-				if (childLevel == -1) {
-					break;
-				}
-			}
-		}
-	}
-
-	private List<EquivalenceClass> generateCandidateEquivalenceClassesF2(EquivalenceClass f1) {
-		// Generate possible candidate equivalence classes with their elements
-		List<EquivalenceClass> candidateEquivalenceClasses = new ArrayList<>();
-		List<Pair<String, Integer>> f1Elements = f1.getElementList();
-		for (int i = 0; i < f1Elements.size(); i++) {
-			List<Pair<String, Integer>> elementList = new ArrayList<>();
-			for (int j = 0; j < f1Elements.size(); j++) {
-				elementList.add(new ImmutablePair<String, Integer>(f1Elements.get(j).getLeft(), 0));
-			}
-			candidateEquivalenceClasses.add(new EquivalenceClass(f1Elements.get(i).getLeft(), elementList));
-		}
-		return candidateEquivalenceClasses;
-	}
-
-	private List<EquivalenceClass> filterF2CandidateClassesByPatternOccurrences(List<EquivalenceClass> candidateEquivalenceClasses,
-			TreeMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> mapF2PatternToOccurence) {
-		List<EquivalenceClass> newEquivalenceClasses = new ArrayList<>();
-		candidateEquivalenceClasses.forEach(equivalenceClass -> {
-			SortedMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> scopeLists = new TreeMap<>();
-			equivalenceClass.getElementList().forEach(element -> {
-				String label = TreeRepresentationUtils.addNodeToTree(equivalenceClass.getPrefix(), element);
-				AScopeListRepresentation<? extends SimpleScopeListElement> scopeList = mapF2PatternToOccurence
-						.get(label);
-				scopeLists.put(label, scopeList);
-			});
-			equivalenceClass.setScopeLists(scopeLists);
-			equivalenceClass.discardNonFrequentElements(minSupport);
-			if (!equivalenceClass.getElementList().isEmpty()) {
-				newEquivalenceClasses.add(equivalenceClass);
-			}
-		});
-		return newEquivalenceClasses;
-	}
-
-	/**
 	 * Finds all equivalence classes derived from the given equivalence class and
 	 * adds them to the list of found equivalence classes.
 	 * 
@@ -373,7 +66,9 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		// For (x, i) element P
 		for (Pair<String, Integer> XIelement : equivalenceClass.getElementList()) {
 			String newPrefix = TreeRepresentationUtils.addNodeToTree(equivalenceClass.getPrefix(), XIelement);
-			if (!prefixOccursDirectly(equivalenceClass, trees, newPrefix)) {
+			if (!ScopeListRepresentationUtils.prefixOccursDirectly(equivalenceClass, trees, newPrefix)) {
+				System.out.println("Continue because prefix " + newPrefix + " doesn't occurr directly");
+				//TODO why does the prefix get added anyways? Don't make this happen!! -> still will exist in eq class and if eq class is last eq class doesnt get detected -> ok
 				continue;
 			}
 
@@ -385,16 +80,6 @@ public class TreeMiner implements FrequentSubtreeFinder {
 				findFrequentSubtrees(pXi, trees);
 			}
 		}
-	}
-
-	private boolean prefixOccursDirectly(EquivalenceClass equivalenceClass, List<String> trees, String newPrefix) {
-		boolean occurrsDirectly = false;
-		for (SimpleScopeListElement scopeListElement : equivalenceClass.getScopeListFor(newPrefix)) {
-			if (TreeRepresentationUtils.containsSubtree(newPrefix, trees.get(scopeListElement.getTreeIndex()))) {
-				occurrsDirectly = true;
-			}
-		}
-		return occurrsDirectly;
 	}
 
 	private void findMembersOfEquivalenceClass(EquivalenceClass equivalenceClass, Pair<String, Integer> xIElement,
@@ -423,7 +108,8 @@ public class TreeMiner implements FrequentSubtreeFinder {
 			return;
 		}
 
-		AScopeListRepresentation<? extends SimpleScopeListElement> newScopeList = ScopeListRepresentationUtils.doInScopeJoin(xScopeList, yScopeList, countMultipleOccurrences);
+		AScopeListRepresentation<? extends SimpleScopeListElement> newScopeList = ScopeListRepresentationUtils
+				.doInScopeJoin(xScopeList, yScopeList, countMultipleOccurrences);
 
 		if (newScopeList.size() >= minSupport) {
 			int numberOfChildrenOfParentNode = TreeRepresentationUtils
@@ -435,7 +121,8 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		}
 
 		// Test (y, j)
-		newScopeList = ScopeListRepresentationUtils.doOutScopeJoin(yJElement, xScopeList, yScopeList, countMultipleOccurrences);
+		newScopeList = ScopeListRepresentationUtils.doOutScopeJoin(yJElement, xScopeList, yScopeList,
+				countMultipleOccurrences);
 
 		if (newScopeList.size() >= minSupport) {
 			pXi.addElement(yJElement);
@@ -454,8 +141,8 @@ public class TreeMiner implements FrequentSubtreeFinder {
 			return;
 		}
 
-		AScopeListRepresentation<? extends SimpleScopeListElement> newScopeList = ScopeListRepresentationUtils.doOutScopeJoin(yJElement, xScopeList,
-				yScopeList, countMultipleOccurrences);
+		AScopeListRepresentation<? extends SimpleScopeListElement> newScopeList = ScopeListRepresentationUtils
+				.doOutScopeJoin(yJElement, xScopeList, yScopeList, countMultipleOccurrences);
 
 		if (newScopeList.size() >= minSupport) {
 			pXi.addElement(yJElement);
@@ -484,6 +171,10 @@ public class TreeMiner implements FrequentSubtreeFinder {
 					equivalenceClass.getElementList().get(i));
 			AScopeListRepresentation<? extends SimpleScopeListElement> scopeList = equivalenceClass
 					.getScopeListFor(subTree);
+			
+			if (scopeList == null) {
+				System.out.println("No scope list for " + subTree);
+			}
 
 			// for each scope list element of a subtree, check if it actually appears in
 			// that tree or is just embedded
@@ -499,6 +190,8 @@ public class TreeMiner implements FrequentSubtreeFinder {
 				newScopeLists.put(subTree, scopeList);
 				newElementList.add(equivalenceClass.getElementList().get(i));
 
+			} else {
+				System.out.println("Discard " + subTree);
 			}
 		}
 
@@ -527,5 +220,9 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		}
 
 		return treesWithPatternOccurrences;
+	}
+
+	public void setCountMultipleOccurrences(boolean countMultipleOccurrences) {
+		this.countMultipleOccurrences = countMultipleOccurrences;
 	}
 }

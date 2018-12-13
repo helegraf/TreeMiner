@@ -1,6 +1,9 @@
-package treeminer;
+package treeminer.scopelists.representation;
 
 import java.util.List;
+
+import treeminer.Scope;
+import treeminer.scopelists.elements.ScopeVectorListElement;
 
 public class ScopeVectorListRepresentation extends AScopeListRepresentation<ScopeVectorListElement> {
 

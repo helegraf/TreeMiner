@@ -1,5 +1,7 @@
 package treeminer;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,7 +23,9 @@ public class TreeMinerTest {
 
 	@Test
 	public void testContainsSubtree() {
-		TreeRepresentationUtils.containsSubtree("A B -1", "A");
+		assertEquals(true, TreeRepresentationUtils.containsSubtree("A B -1", "A"));
+		assertEquals(true, TreeRepresentationUtils.containsSubtree("A B -1 C -1", "A C -1"));
+		assertEquals(true, TreeRepresentationUtils.containsSubtree("A B -1 C -1", "A B -1 C -1"));
 	}
 
 	@Test
@@ -55,6 +59,17 @@ public class TreeMinerTest {
 			}
 			System.out.println();
 		}
+		
+		treeMiner = new TreeMiner();
+		treeMiner.setCountMultipleOccurrences(false);
+		System.out
+		.println(treeMiner.findFrequentSubtrees(Arrays.asList("A B -1 C -1", "A", "A C -1", "A B D -1 -1"), 1));
+for (double[] chara : treeMiner.getCharacterizationsOfTrainingExamples()) {
+	for (double number : chara) {
+		System.out.print(number + ", ");
+	}
+	System.out.println();
+}
 	}
 
 	public static String generateTree(int[] labels, int numNodes) {

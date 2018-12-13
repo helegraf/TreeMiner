@@ -1,4 +1,7 @@
-package treeminer;
+package treeminer.scopelists.representation;
+
+import treeminer.Scope;
+import treeminer.scopelists.elements.ScopeListElement;
 
 /**
  * Represents the ordered list of occurrences of a pattern.

@@ -1,11 +1,13 @@
-package treeminer;
+package treeminer.scopelists.representation;
 
 import java.util.Iterator;
 import java.util.TreeSet;
 
+import treeminer.scopelists.elements.SimpleScopeListElement;
+
 public abstract class AScopeListRepresentation<T extends SimpleScopeListElement> implements Iterable<T> {
 
-	private TreeSet<T> elements;
+	private TreeSet<T> elements = new TreeSet<>();
 	public abstract AScopeListRepresentation<T> inScopeJoin(AScopeListRepresentation<T> other);
 	public abstract AScopeListRepresentation<T> outScopeJoin (AScopeListRepresentation<T> other, int attachedTo);
 	

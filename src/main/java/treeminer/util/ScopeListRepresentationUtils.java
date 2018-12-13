@@ -1,13 +1,18 @@
 package treeminer.util;
 
+import java.util.List;
+
 import org.apache.commons.lang3.tuple.Pair;
 
-import treeminer.AScopeListRepresentation;
-import treeminer.ScopeListRepresentation;
-import treeminer.ScopeVectorListRepresentation;
-import treeminer.SimpleScopeListElement;
+import treeminer.EquivalenceClass;
+import treeminer.scopelists.elements.SimpleScopeListElement;
+import treeminer.scopelists.representation.AScopeListRepresentation;
+import treeminer.scopelists.representation.ScopeListRepresentation;
+import treeminer.scopelists.representation.ScopeVectorListRepresentation;
 
 public class ScopeListRepresentationUtils {
+	
+	private ScopeListRepresentationUtils() {}
 
 	public static AScopeListRepresentation<? extends SimpleScopeListElement> doOutScopeJoin(Pair<String, Integer> yJElement,
 			AScopeListRepresentation<? extends SimpleScopeListElement> xScopeList,
@@ -30,6 +35,16 @@ public class ScopeListRepresentationUtils {
 		} else {
 			return ((ScopeVectorListRepresentation) xScopeList).inScopeJoin((ScopeVectorListRepresentation) yScopeList);
 		}
+	}
+
+	public static boolean prefixOccursDirectly(EquivalenceClass equivalenceClass, List<String> trees, String newPrefix) {
+		boolean occurrsDirectly = false;
+		for (SimpleScopeListElement scopeListElement : equivalenceClass.getScopeListFor(newPrefix)) {
+			if (TreeRepresentationUtils.containsSubtree(trees.get(scopeListElement.getTreeIndex()), newPrefix)) {
+				occurrsDirectly = true;
+			}
+		}
+		return occurrsDirectly;
 	}
 
 }
