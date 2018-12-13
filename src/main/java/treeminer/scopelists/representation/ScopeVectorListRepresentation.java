@@ -5,6 +5,13 @@ import java.util.List;
 import treeminer.Scope;
 import treeminer.scopelists.elements.ScopeVectorListElement;
 
+/**
+ * A scope list representation that contains scope vector list elements as
+ * elements.
+ * 
+ * @author Helena Graf
+ *
+ */
 public class ScopeVectorListRepresentation extends AScopeListRepresentation<ScopeVectorListElement> {
 
 	@Override
@@ -39,7 +46,7 @@ public class ScopeVectorListRepresentation extends AScopeListRepresentation<Scop
 	}
 
 	@Override
-	public AScopeListRepresentation<ScopeVectorListElement> inScopeJoin (
+	public AScopeListRepresentation<ScopeVectorListElement> inScopeJoin(
 			AScopeListRepresentation<ScopeVectorListElement> other) {
 		ScopeVectorListRepresentation newScopeVectorList = new ScopeVectorListRepresentation();
 

@@ -13,13 +13,38 @@ import treeminer.scopelists.representation.AScopeListRepresentation;
 import treeminer.scopelists.representation.ScopeVectorListRepresentation;
 import treeminer.util.TreeRepresentationUtils;
 
+/**
+ * Initialized the TreeMiner for the case that only distinct occurrences of
+ * patterns are counted, i.e. several occurrences of the same pattern within one
+ * tree are counted as one occurrence only.
+ * 
+ * @author Helena Graf
+ *
+ */
 public class TreeMinerDistinctInitializer {
-	
+
+	private TreeMinerDistinctInitializer() {
+	}
+
+	/**
+	 * Finds the scopes for the elements in the equivalence class F1 and generates
+	 * all valid classes for F2 on the premise that only one occurrence of a pattern
+	 * within a tree is counted.
+	 * 
+	 * @param f1
+	 *            the equivalence class with the empty prefix
+	 * @param trees
+	 *            the trees in the given database
+	 * @param minSupport
+	 *            the minimum (absolute) support for a patternt to be considered
+	 *            frequent in the database
+	 * @return all valid equivalence classes with a one-node prefix
+	 */
 	public static List<EquivalenceClass> initialize(EquivalenceClass f1, List<String> trees, int minSupport) {
 		// Generate candidate scope lists for the candidate equivalence classes
 		TreeMap<String, AScopeListRepresentation<ScopeVectorListElement>> mapF2PatternToOccurence = new TreeMap<>();
 		TreeMap<String, AScopeListRepresentation<ScopeVectorListElement>> mapF1PatternToOccurence = new TreeMap<>();
-		
+
 		generateCandidateScopeListsF1F2NoMatchLabel(f1, mapF2PatternToOccurence, mapF1PatternToOccurence);
 		mapF1PatternToOccurence.forEach(f1::addScopeListFor);
 
@@ -29,9 +54,10 @@ public class TreeMinerDistinctInitializer {
 		}
 
 		// Assemble scope lists for f2
-		List<EquivalenceClass> candidateEquivalenceClasses = TreeMinerGeneralInitializer.generateCandidateEquivalenceClassesF2(f1);
-		return TreeMinerDistinctInitializer.filterF2CandidateClassesByPatternOccurrencesNoMatchLabel(candidateEquivalenceClasses,
-				mapF2PatternToOccurence, minSupport);
+		List<EquivalenceClass> candidateEquivalenceClasses = TreeMinerGeneralInitializer
+				.generateCandidateEquivalenceClassesF2(f1);
+		return TreeMinerDistinctInitializer.filterF2CandidateClassesByPatternOccurrencesNoMatchLabel(
+				candidateEquivalenceClasses, mapF2PatternToOccurence, minSupport);
 	}
 
 	private static void generateCandidateScopeListsF1F2NoMatchLabel(EquivalenceClass f1,
@@ -39,7 +65,9 @@ public class TreeMinerDistinctInitializer {
 			TreeMap<String, AScopeListRepresentation<ScopeVectorListElement>> f1ScopeLists) {
 		// Fill the scope lists with candidates
 		f1.getElementList().forEach(pairX -> {
-			f2ScopeLists.put(pairX.getLeft(), new ScopeVectorListRepresentation());
+
+			f1ScopeLists.put(pairX.getLeft(), new ScopeVectorListRepresentation());
+
 			f1.getElementList().forEach(pairY -> {
 				String pattern = String.format("%s%s%s%s%s", pairX.getLeft(),
 						TreeRepresentationUtils.TREE_NODE_SEPARATOR, pairY.getLeft(),
@@ -49,8 +77,6 @@ public class TreeMinerDistinctInitializer {
 			});
 		});
 	}
-
-
 
 	private static void findPatternsInTreeNoMatchLabel(String tree,
 			TreeMap<String, AScopeListRepresentation<ScopeVectorListElement>> mapF2PatternToOccurence,
@@ -65,8 +91,6 @@ public class TreeMinerDistinctInitializer {
 				nodeScopes);
 
 	}
-
-
 
 	private static void findNodeScopesNoMatchLabel(String[] treeRepresentation, Scope[] nodeScopes) {
 		for (int j = 0; j < nodeScopes.length; j++) {
@@ -91,8 +115,6 @@ public class TreeMinerDistinctInitializer {
 		nodeScopes[0].setUpperBound(nodeScopes.length - 1);
 	}
 
-
-
 	private static void findCandidateFrequenciesNoMatchLabel(
 			TreeMap<String, AScopeListRepresentation<ScopeVectorListElement>> mapF2PatternToOccurence,
 			TreeMap<String, AScopeListRepresentation<ScopeVectorListElement>> mapF1PatternToOccurence, int i,
@@ -114,7 +136,6 @@ public class TreeMinerDistinctInitializer {
 			TreeMap<String, AScopeListRepresentation<ScopeVectorListElement>> mapF1PatternToOccurence, int i,
 			Scope[] nodeScopes, int atNode, String treeElement) {
 		// Add the found single pattern
-		// TODO possible point of failure check if goes wrong
 		ArrayList<Scope> scopes = new ArrayList<>();
 		scopes.add(nodeScopes[atNode]);
 		ScopeVectorListElement entry = new ScopeVectorListElement(i, scopes);
@@ -134,8 +155,7 @@ public class TreeMinerDistinctInitializer {
 			if (!potentialChild.equals(TreeRepresentationUtils.MOVE_UP_TOKEN)) {
 				childLevel++;
 				childNumber++;
-				// TODO this is a possible point of failure lol check if doesn't work correctly
-				List<Scope> scopes = new ArrayList<Scope>();
+				List<Scope> scopes = new ArrayList<>();
 				// parent scope
 				scopes.add(nodeScopes[atNode]);
 				// this node scope
@@ -158,8 +178,22 @@ public class TreeMinerDistinctInitializer {
 		}
 	}
 
-	public static List<EquivalenceClass> filterF2CandidateClassesByPatternOccurrencesNoMatchLabel(List<EquivalenceClass> candidateEquivalenceClasses,
-			TreeMap<String, AScopeListRepresentation<ScopeVectorListElement>> mapF2PatternToOccurence, int minSupport) {
+	/**
+	 * Filter the given candidate equivalence classes F2 so that only valid classes
+	 * remain.
+	 * 
+	 * @param candidateEquivalenceClasses
+	 *            the candidate equivalence classes with a one-node prefix
+	 * @param mapF2PatternToOccurence
+	 *            pattern occurrences in F2
+	 * @param minSupport
+	 *            the minimum support of a pattern to be considered frequent
+	 * @return the actual equivalence classes F2
+	 */
+	public static List<EquivalenceClass> filterF2CandidateClassesByPatternOccurrencesNoMatchLabel(
+			List<EquivalenceClass> candidateEquivalenceClasses,
+			SortedMap<String, AScopeListRepresentation<ScopeVectorListElement>> mapF2PatternToOccurence,
+			int minSupport) {
 		List<EquivalenceClass> newEquivalenceClasses = new ArrayList<>();
 		candidateEquivalenceClasses.forEach(equivalenceClass -> {
 			SortedMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> scopeLists = new TreeMap<>();

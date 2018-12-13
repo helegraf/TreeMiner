@@ -21,15 +21,19 @@ public class ScopeListRepresentation extends AScopeListRepresentation<ScopeListE
 	 * Performs an out scope join of this scope list with another scope list.
 	 * 
 	 * @param other
-	 *            The scope list this list should be joined with
-	 * @return The scope list that results from this join
+	 *            the scope list this list should be joined with
+	 * @param attachedTo
+	 *            the node that the new node for which this join is done is attached
+	 *            to
+	 * @return the scope list that results from this join
 	 */
 	@Override
-	public AScopeListRepresentation<ScopeListElement> outScopeJoin(AScopeListRepresentation<ScopeListElement> other, int attachedTo) {
+	public AScopeListRepresentation<ScopeListElement> outScopeJoin(AScopeListRepresentation<ScopeListElement> other,
+			int attachedTo) {
 		ScopeListRepresentation newScopeList = new ScopeListRepresentation();
 
 		this.forEach(scopeListElementX -> other.forEach(scopeListElementY -> {
-			if (scopeListElementX.getTreeIndex()==scopeListElementY.getTreeIndex()
+			if (scopeListElementX.getTreeIndex() == scopeListElementY.getTreeIndex()
 					&& scopeListElementX.getMatchLabel().equals(scopeListElementY.getMatchLabel())
 					&& scopeListElementX.getScope().isStrictlyLessThan(scopeListElementY.getScope())) {
 				int treeId = scopeListElementY.getTreeIndex();
@@ -46,15 +50,15 @@ public class ScopeListRepresentation extends AScopeListRepresentation<ScopeListE
 	 * Performs an in scope join of this scope list with another scope list.
 	 * 
 	 * @param other
-	 *            The scope list this list should be joined with
-	 * @return The scope list that results from this join
+	 *            the scope list this list should be joined with
+	 * @return the scope list that results from this join
 	 */
 	@Override
 	public AScopeListRepresentation<ScopeListElement> inScopeJoin(AScopeListRepresentation<ScopeListElement> other) {
 		ScopeListRepresentation newScopeList = new ScopeListRepresentation();
 
 		this.forEach(scopeListElementX -> other.forEach(scopeListElementY -> {
-			if (scopeListElementX.getTreeIndex()==scopeListElementY.getTreeIndex()
+			if (scopeListElementX.getTreeIndex() == scopeListElementY.getTreeIndex()
 					&& scopeListElementX.getMatchLabel().equals(scopeListElementY.getMatchLabel())
 					&& scopeListElementX.getScope().contains(scopeListElementY.getScope())) {
 				int treeId = scopeListElementY.getTreeIndex();

@@ -72,8 +72,6 @@ public class EquivalenceClass {
 				list.forEach(scope -> distinctOccurrences.add(scope.getTreeIndex()));
 				if (distinctOccurrences.size() >= minSupport) {
 					newScopeLists.put(label, list);
-				} else {
-					System.out.println("Discard non frequent element " + label);
 				}
 			}
 		});
@@ -139,7 +137,6 @@ public class EquivalenceClass {
 	 *            The occurrences of the subtree given by a scope list
 	 */
 	public void addScopeListFor(String subtree, AScopeListRepresentation<? extends SimpleScopeListElement> scopeList) {
-		System.out.println("ADding scope list for " + subtree);
 		scopeLists.put(subtree, scopeList);
 	}
 
@@ -158,7 +155,8 @@ public class EquivalenceClass {
 	 * @param scopeLists
 	 *            The new scope lists
 	 */
-	public void setScopeLists(SortedMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> scopeLists) {
+	public void setScopeLists(
+			SortedMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> scopeLists) {
 		this.scopeLists = scopeLists;
 	}
 

@@ -42,7 +42,8 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		EquivalenceClass f1 = TreeMinerGeneralInitializer.findFrequentF1Subtrees(trees, minSupport);
 		foundEquivalenceClasses.add(f1);
 
-		List<EquivalenceClass> f2Classes = TreeMinerGeneralInitializer.findFrequentF2Subtrees(f1, trees, countMultipleOccurrences, minSupport);
+		List<EquivalenceClass> f2Classes = TreeMinerGeneralInitializer.findFrequentF2Subtrees(f1, trees,
+				countMultipleOccurrences, minSupport);
 		foundEquivalenceClasses.addAll(f2Classes);
 
 		f2Classes.forEach(elem -> findFrequentSubtrees(elem, trees));
@@ -55,20 +56,11 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		return new ArrayList<>(foundFrequentTrees);
 	}
 
-	/**
-	 * Finds all equivalence classes derived from the given equivalence class and
-	 * adds them to the list of found equivalence classes.
-	 * 
-	 * @param equivalenceClass
-	 *            The equivalence class from which the new classes are derived
-	 */
-	protected void findFrequentSubtrees(EquivalenceClass equivalenceClass, List<String> trees) {
+	private void findFrequentSubtrees(EquivalenceClass equivalenceClass, List<String> trees) {
 		// For (x, i) element P
 		for (Pair<String, Integer> XIelement : equivalenceClass.getElementList()) {
 			String newPrefix = TreeRepresentationUtils.addNodeToTree(equivalenceClass.getPrefix(), XIelement);
 			if (!ScopeListRepresentationUtils.prefixOccursDirectly(equivalenceClass, trees, newPrefix)) {
-				System.out.println("Continue because prefix " + newPrefix + " doesn't occurr directly");
-				//TODO why does the prefix get added anyways? Don't make this happen!! -> still will exist in eq class and if eq class is last eq class doesnt get detected -> ok
 				continue;
 			}
 
@@ -161,7 +153,6 @@ public class TreeMiner implements FrequentSubtreeFinder {
 	 * @return The found non-embedded frequent subtrees
 	 */
 	protected TreeSet<String> extractNonEmbeddedFrequentTrees(EquivalenceClass equivalenceClass, List<String> trees) {
-		// TODO remove this method, shouldn't be necessary with the new improvements
 		TreeSet<String> foundTrees = new TreeSet<>();
 		SortedMap<String, AScopeListRepresentation<? extends SimpleScopeListElement>> newScopeLists = new TreeMap<>();
 		List<Pair<String, Integer>> newElementList = new ArrayList<>();
@@ -171,10 +162,6 @@ public class TreeMiner implements FrequentSubtreeFinder {
 					equivalenceClass.getElementList().get(i));
 			AScopeListRepresentation<? extends SimpleScopeListElement> scopeList = equivalenceClass
 					.getScopeListFor(subTree);
-			
-			if (scopeList == null) {
-				System.out.println("No scope list for " + subTree);
-			}
 
 			// for each scope list element of a subtree, check if it actually appears in
 			// that tree or is just embedded
@@ -190,8 +177,6 @@ public class TreeMiner implements FrequentSubtreeFinder {
 				newScopeLists.put(subTree, scopeList);
 				newElementList.add(equivalenceClass.getElementList().get(i));
 
-			} else {
-				System.out.println("Discard " + subTree);
 			}
 		}
 
@@ -222,6 +207,14 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		return treesWithPatternOccurrences;
 	}
 
+	/**
+	 * Set whether multiple occurrences of a pattern within a tree shall be counted
+	 * separately. WARNING: enabling this option can increase memory usage
+	 * drastically!
+	 * 
+	 * @param countMultipleOccurrences
+	 *            whether multiple occurrences shall be counted
+	 */
 	public void setCountMultipleOccurrences(boolean countMultipleOccurrences) {
 		this.countMultipleOccurrences = countMultipleOccurrences;
 	}

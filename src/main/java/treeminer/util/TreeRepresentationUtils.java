@@ -28,7 +28,7 @@ public class TreeRepresentationUtils {
 	 * representation of a tree. There cannot be a label in a tree representation
 	 * whose name is equal to this token.
 	 */
-	public static final String MOVE_UP_TOKEN = "-1";
+	public static final String MOVE_UP_TOKEN = "-";
 
 	/**
 	 * Creates the String representation of the tree that is created when appending

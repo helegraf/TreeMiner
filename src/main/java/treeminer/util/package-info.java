@@ -1,7 +1,6 @@
 /**
+ * Contains utility classes.
  * 
- */
-/**
  * @author Helena Graf
  *
  */

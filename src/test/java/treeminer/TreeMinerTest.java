@@ -23,19 +23,19 @@ public class TreeMinerTest {
 
 	@Test
 	public void testContainsSubtree() {
-		assertEquals(true, TreeRepresentationUtils.containsSubtree("A B -1", "A"));
-		assertEquals(true, TreeRepresentationUtils.containsSubtree("A B -1 C -1", "A C -1"));
-		assertEquals(true, TreeRepresentationUtils.containsSubtree("A B -1 C -1", "A B -1 C -1"));
+		assertEquals(true, TreeRepresentationUtils.containsSubtree("A B -", "A"));
+		assertEquals(true, TreeRepresentationUtils.containsSubtree("A B - C -", "A C -"));
+		assertEquals(true, TreeRepresentationUtils.containsSubtree("A B - C -", "A B - C -"));
 	}
 
 	@Test
 	public void testAddNodeToPrefixLastNode() {
-		System.out.println(TreeRepresentationUtils.addNodeToTree("a b -1", new ImmutablePair<String, Integer>("c", 1)));
+		System.out.println(TreeRepresentationUtils.addNodeToTree("a b -", new ImmutablePair<String, Integer>("c", 1)));
 	}
 
 	@Test
 	public void testAddNodeToPrefixIntermediate() {
-		System.out.println(TreeRepresentationUtils.addNodeToTree("a b -1", new ImmutablePair<String, Integer>("c", 0)));
+		System.out.println(TreeRepresentationUtils.addNodeToTree("a b -", new ImmutablePair<String, Integer>("c", 0)));
 	}
 
 	@Test
@@ -45,31 +45,41 @@ public class TreeMinerTest {
 
 	@Test
 	public void testAddNodeToLongTree() {
-		System.out.println(TreeRepresentationUtils.addNodeToTree("a b c -1 e -1 -1 -1",
-				new ImmutablePair<String, Integer>("d", 1)));
+		System.out.println(
+				TreeRepresentationUtils.addNodeToTree("a b c - e - - -", new ImmutablePair<String, Integer>("d", 1)));
 	}
 
 	@Test
 	public void testFindSubtrees() {
-		System.out
-				.println(treeMiner.findFrequentSubtrees(Arrays.asList("A B -1 C -1", "A", "A C -1", "A B D -1 -1"), 1));
-		for (double[] chara : treeMiner.getCharacterizationsOfTrainingExamples()) {
+		System.out.println("Find subtree test");
+		List<String> normalTreeMinerFoundTrees = treeMiner
+				.findFrequentSubtrees(Arrays.asList("A B - C -", "A", "A C -", "A B D - -"), 1);
+		System.out.println(normalTreeMinerFoundTrees);
+		double[][] characterizations = treeMiner.getCharacterizationsOfTrainingExamples();
+		for (double[] chara : characterizations) {
 			for (double number : chara) {
 				System.out.print(number + ", ");
 			}
 			System.out.println();
 		}
-		
+
 		treeMiner = new TreeMiner();
 		treeMiner.setCountMultipleOccurrences(false);
-		System.out
-		.println(treeMiner.findFrequentSubtrees(Arrays.asList("A B -1 C -1", "A", "A C -1", "A B D -1 -1"), 1));
-for (double[] chara : treeMiner.getCharacterizationsOfTrainingExamples()) {
-	for (double number : chara) {
-		System.out.print(number + ", ");
-	}
-	System.out.println();
-}
+		List<String> newTreeMinerFoundTrees = treeMiner
+				.findFrequentSubtrees(Arrays.asList("A B - C -", "A", "A C -", "A B D - -"), 1);
+		System.out.println(newTreeMinerFoundTrees);
+		double[][] newCharacterizations = treeMiner.getCharacterizationsOfTrainingExamples();
+		for (double[] chara : newCharacterizations) {
+			for (double number : chara) {
+				System.out.print(number + ", ");
+			}
+			System.out.println();
+		}
+
+		System.out.println(normalTreeMinerFoundTrees.equals(newTreeMinerFoundTrees));
+		for (int i = 0; i < characterizations.length; i++) {
+			System.out.println(Arrays.equals(characterizations[i], newCharacterizations[i]));
+		}
 	}
 
 	public static String generateTree(int[] labels, int numNodes) {
@@ -96,7 +106,7 @@ for (double[] chara : treeMiner.getCharacterizationsOfTrainingExamples()) {
 				// If we have moveUpTokens, but no labels, add a moveUpToken
 				builder.append(separator);
 				builder.append(moveUpToken);
-				numMoveUpTokensToDistribute --;
+				numMoveUpTokensToDistribute--;
 			} else {
 				// if we have both moveuptokens & labels choose randomly what to do
 				if (Math.random() > 0.5) {
@@ -111,7 +121,7 @@ for (double[] chara : treeMiner.getCharacterizationsOfTrainingExamples()) {
 				}
 			}
 		}
-		
+
 		return builder.toString().trim();
 	}
 
@@ -120,21 +130,21 @@ for (double[] chara : treeMiner.getCharacterizationsOfTrainingExamples()) {
 		for (int i = 0; i < numLabels; i++) {
 			labels[i] = i;
 		}
-		
+
 		List<String> trees = new ArrayList<>();
 		for (int i = 0; i < numTrees; i++) {
 			trees.add(generateTree(labels, numNodesPerTree));
 		}
-		
+
 		return trees;
 	}
-	
+
 	public static void performanceTest(int numLabels, int numNodesPerTree, int numTrees, int minSupport) {
 		TreeMiner miner = new TreeMiner();
 		long time = System.currentTimeMillis();
 		miner.findFrequentSubtrees(generateTreesForPerformanceTest(numLabels, numNodesPerTree, numTrees), minSupport);
 		long elapsed = System.currentTimeMillis() - time;
-		
+
 		System.out.println("Time for test: " + elapsed + "ms.");
 	}
 
