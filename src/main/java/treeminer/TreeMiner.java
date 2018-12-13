@@ -78,10 +78,10 @@ public class TreeMiner implements FrequentSubtreeFinder {
 			EquivalenceClass pXi) {
 		// For (y, j) element P
 		for (Pair<String, Integer> YJElement : equivalenceClass.getElementList()) {
-			// i = j case
+			// i = j case, both elements are attached to the same node
 			if (xIElement.getRight() == YJElement.getRight()) {
 				checkCase1(equivalenceClass, xIElement, pXi, YJElement);
-				// i > j case
+				// i > j case, j is attached to a higher node
 			} else if (xIElement.getRight() > YJElement.getRight()) {
 				checkCase2(equivalenceClass, xIElement, pXi, YJElement);
 				// i < j case - nothing more can be added so we skip it

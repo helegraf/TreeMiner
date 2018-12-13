@@ -1,5 +1,6 @@
 package treeminer.scopelists.representation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import treeminer.Scope;
@@ -22,24 +23,32 @@ public class ScopeVectorListRepresentation extends AScopeListRepresentation<Scop
 
 		this.forEach(scopeListElementX -> other.forEach(scopeListElementY -> {
 			if (scopeListElementX.getTreeIndex() == scopeListElementY.getTreeIndex()
-					&& scopeListElementX.getScopes().get(scopeListElementX.getScopes().size() - 1).isStrictlyLessThan(
-							scopeListElementY.getScopes().get(scopeListElementY.getScopes().size() - 1))) {
+					&& scopeListElementX.getLastElement().isStrictlyLessThan(scopeListElementY.getLastElement())) {
 
-				Scope sYN = scopeListElementY.getScopes().get(scopeListElementY.getScopes().size() - 1);
+				Scope sYN = scopeListElementY.getLastElement();
 
 				if (scopeListElementX.getScopes().get(attachedTo).contains(sYN)
-						&& scopeListElementX.getScopes().get(attachedTo + 1).isStrictlyLessThan(sYN)) {
-					List<Scope> scopes = scopeListElementX.getScopes().subList(0, attachedTo);
+						&& scopeListElementX.getScopes().get(attachedTo+1).isStrictlyLessThan(sYN)) {
+					System.err.println("Join done case 1");
+					List<Scope> scopes = new ArrayList<>(scopeListElementX.getScopes());
+					scopes = scopes.subList(0, attachedTo+1);
 					scopes.add(sYN);
 					newScopeVectorList.add(new ScopeVectorListElement(scopeListElementX.getTreeIndex(), scopes));
 				} else if (scopeListElementX.getScopes().get(attachedTo).isStrictlyLessThan(sYN) && scopeListElementY
 						.getScopes().get(attachedTo).contains(scopeListElementX.getScopes().get(attachedTo))) {
-					List<Scope> scopes = scopeListElementY.getScopes().subList(0, attachedTo);
+					System.err.println("Join done case 2");
+					List<Scope> scopes = new ArrayList<>(scopeListElementY.getScopes());
+					scopes = scopes.subList(0, attachedTo+1);
 					scopes.add(sYN);
 					newScopeVectorList.add(new ScopeVectorListElement(scopeListElementX.getTreeIndex(), scopes));
+				} else {
+					System.out.println("Join not done for other reasons");
+					System.out.println(scopeListElementX);
+					System.out.println(scopeListElementY);
+					System.out.println(attachedTo);
 				}
 
-			}
+			} 
 		}));
 
 		return newScopeVectorList;
@@ -53,12 +62,12 @@ public class ScopeVectorListRepresentation extends AScopeListRepresentation<Scop
 		this.forEach(scopeListElementX -> other.forEach(scopeListElementY -> {
 			if (scopeListElementX.getTreeIndex() == scopeListElementY.getTreeIndex()) {
 				// Compare last element of lists
-				Scope sXM = scopeListElementX.getScopes().get(scopeListElementX.getScopes().size() - 1);
-				Scope sYN = scopeListElementY.getScopes().get(scopeListElementY.getScopes().size() - 1);
+				Scope sXM = scopeListElementX.getLastElement();
+				Scope sYN = scopeListElementY.getLastElement();
 				if (sXM.contains(sYN)) {
 					boolean isMinimal = true;
 					for (ScopeVectorListElement otherX : this) {
-						Scope sXL = otherX.getScopes().get(otherX.getScopes().size() - 1);
+						Scope sXL = otherX.getLastElement();
 
 						if (sXM.contains(sXL) && sXL.contains(sYN)) {
 							isMinimal = false;
@@ -67,7 +76,8 @@ public class ScopeVectorListRepresentation extends AScopeListRepresentation<Scop
 					}
 
 					if (isMinimal) {
-						List<Scope> scopes = scopeListElementX.getScopes();
+						// these scopes should be the rightmost nodes on the path. Since s_y gets added under s_x, we just add s_y to the x scope list
+						List<Scope> scopes = new ArrayList<>(scopeListElementX.getScopes());
 						scopes.add(sYN);
 						newScopeVectorList.add(new ScopeVectorListElement(scopeListElementX.getTreeIndex(), scopes));
 					}

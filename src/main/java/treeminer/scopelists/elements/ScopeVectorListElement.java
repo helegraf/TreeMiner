@@ -29,6 +29,15 @@ public class ScopeVectorListElement extends SimpleScopeListElement {
 	}
 
 	/**
+	 * Get the scope contained in this element.
+	 * 
+	 * @return the last scope
+	 */
+	public Scope getLastElement() {
+		return scopes.get(scopes.size() - 1);
+	}
+
+	/**
 	 * Get the node scopes on the rightmost path of the pattern.
 	 * 
 	 * @return the node scopes

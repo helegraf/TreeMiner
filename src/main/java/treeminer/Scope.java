@@ -152,4 +152,9 @@ public class Scope implements Comparable<Scope> {
 		result = result * 37 + this.lowerBound;
 		return result;
 	}
+
+	@Override
+	public Scope clone() {
+		return new Scope(this.lowerBound, this.upperBound);
+	}
 }
