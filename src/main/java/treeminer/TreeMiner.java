@@ -33,6 +33,9 @@ public class TreeMiner implements FrequentSubtreeFinder {
 	private int numFoundPatterns;
 	private boolean countMultipleOccurrences = true;
 
+	/** parameter: only find patterns that start at the root */
+	private boolean onlySearchForPatternsThatStartWithTheRoot = false;
+
 	@Override
 	public List<String> findFrequentSubtrees(List<String> trees, int minSupport) {
 		this.minSupport = minSupport;
@@ -40,11 +43,43 @@ public class TreeMiner implements FrequentSubtreeFinder {
 		this.foundEquivalenceClasses = new ArrayList<>();
 
 		EquivalenceClass f1 = TreeMinerGeneralInitializer.findFrequentF1Subtrees(trees, minSupport);
-		foundEquivalenceClasses.add(f1);
+		if (onlySearchForPatternsThatStartWithTheRoot) {
+			EquivalenceClass newF1 = new EquivalenceClass(f1.getPrefix());
+			// Only add those elements of f1 that are roots themselves
+			f1.getElementList().forEach(pair -> {
+				for (String tree : trees) {
+					if (tree.split(TreeRepresentationUtils.TREE_NODE_SEPARATOR)[0].equals(pair.getLeft())) {
+						newF1.addElement(pair);
+						break;
+					}
+				}
+			});
+			foundEquivalenceClasses.add(newF1);
+		} else {
+			foundEquivalenceClasses.add(f1);
+		}
 
 		List<EquivalenceClass> f2Classes = TreeMinerGeneralInitializer.findFrequentF2Subtrees(f1, trees,
 				countMultipleOccurrences, minSupport);
-		foundEquivalenceClasses.addAll(f2Classes);
+
+		if (onlySearchForPatternsThatStartWithTheRoot) {
+			// Add the scopes to f1
+			foundEquivalenceClasses.get(0).getElementList().forEach(pair -> foundEquivalenceClasses.get(0)
+					.addScopeListFor(pair.getLeft(), f1.getScopeListFor(pair.getLeft())));
+
+			// Add the correct f2 class
+			f2Classes.forEach(equivalenceClass -> {
+				for (String tree : trees) {
+					if (tree.split(TreeRepresentationUtils.TREE_NODE_SEPARATOR)[0]
+							.equals(equivalenceClass.getPrefix())) {
+						foundEquivalenceClasses.add(equivalenceClass);
+						break;
+					}
+				}
+			});
+		} else {
+			foundEquivalenceClasses.addAll(f2Classes);
+		}
 
 		f2Classes.forEach(elem -> findFrequentSubtrees(elem, trees));
 
@@ -68,6 +103,8 @@ public class TreeMiner implements FrequentSubtreeFinder {
 			findMembersOfEquivalenceClass(equivalenceClass, XIelement, pXi);
 
 			if (!pXi.getElementList().isEmpty()) {
+				System.out.println("Find Members of Class");
+				System.out.println(pXi);
 				foundEquivalenceClasses.add(pXi);
 				findFrequentSubtrees(pXi, trees);
 			}
@@ -217,5 +254,13 @@ public class TreeMiner implements FrequentSubtreeFinder {
 	 */
 	public void setCountMultipleOccurrences(boolean countMultipleOccurrences) {
 		this.countMultipleOccurrences = countMultipleOccurrences;
+	}
+
+	public boolean getOnlySearchForPatternsThatStartWithTheRoot() {
+		return onlySearchForPatternsThatStartWithTheRoot;
+	}
+
+	public void setOnlySearchForPatternsThatStartWithTheRoot(boolean onlySearchForPatternsThatStartWithTheRoot) {
+		this.onlySearchForPatternsThatStartWithTheRoot = onlySearchForPatternsThatStartWithTheRoot;
 	}
 }

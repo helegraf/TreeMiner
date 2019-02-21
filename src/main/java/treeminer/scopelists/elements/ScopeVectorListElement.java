@@ -52,7 +52,7 @@ public class ScopeVectorListElement extends SimpleScopeListElement {
 		if (compare == 0) {
 			ScopeVectorListElement other = (ScopeVectorListElement) o;
 			for (int i = 0; i < this.scopes.size(); i++) {
-				if (other.scopes.size() <= i + 1) {
+				if (other.scopes.size() < i + 1) {
 					return -1;
 				} else {
 					int compareScopes = this.scopes.get(i).compareTo(other.scopes.get(i));

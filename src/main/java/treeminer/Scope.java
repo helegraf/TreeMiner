@@ -119,7 +119,7 @@ public class Scope implements Comparable<Scope> {
 			return -1;
 		} else {
 			if (this.lowerBound == o.lowerBound) {
-				if (this.upperBound < o.lowerBound) {
+				if (this.upperBound < o.upperBound) {
 					return -1;
 				} else {
 					if (this.upperBound == o.upperBound) {

@@ -20,14 +20,15 @@ public class TreeMinerPerformanceTest {
 	 *            ignored
 	 */
 	public static void main(String[] args) {
-		TreeMinerPerformanceTest.comparePerformanceOfVariants(10, 3, 5, 1, true);
-		TreeMinerPerformanceTest.comparePerformanceOfVariants(10, 3, 5, 1, true);
-		TreeMinerPerformanceTest.comparePerformanceOfVariants(10, 3, 5, 1, true);
-		TreeMinerPerformanceTest.comparePerformanceOfVariants(10, 3, 5, 1, true);
-		TreeMinerPerformanceTest.comparePerformanceOfVariants(10, 3, 5, 1, true);
-		TreeMinerPerformanceTest.comparePerformanceOfVariants(100, 20, 10, 1, false);
-		TreeMinerPerformanceTest.comparePerformanceOfVariants(300, 50, 50, 5, false);
-		TreeMinerPerformanceTest.comparePerformanceOfVariants(500, 50, 2000, 20, false);
+//		TreeMinerPerformanceTest.comparePerformanceOfVariants(10, 3, 5, 1, true);
+//		TreeMinerPerformanceTest.comparePerformanceOfVariants(10, 3, 5, 1, true);
+//		TreeMinerPerformanceTest.comparePerformanceOfVariants(10, 3, 5, 1, true);
+//		TreeMinerPerformanceTest.comparePerformanceOfVariants(10, 3, 5, 1, true);
+//		TreeMinerPerformanceTest.comparePerformanceOfVariants(10, 3, 5, 1, true);
+		TreeMinerPerformanceTest.comparePerformanceOfVariants(10, 10, 2, 1, true);
+//		TreeMinerPerformanceTest.comparePerformanceOfVariants(100, 20, 10, 5, true);
+//		TreeMinerPerformanceTest.comparePerformanceOfVariants(300, 50, 50, 15, true);
+//		TreeMinerPerformanceTest.comparePerformanceOfVariants(500, 50, 2000, 25, true);
 	}
 
 	/**
@@ -97,8 +98,8 @@ public class TreeMinerPerformanceTest {
 		System.out.println(trees1.size() + " vs " + trees2.size());
 		System.out.println("Additionally found: " + additionallyFound + " not found " + notFound);
 		if (printTrees) {
-			System.out.println(trees1);
-			System.out.println(trees2);
+			//System.out.println(trees1);
+			//System.out.println(trees2);
 			System.out.println("Additional: " + addFound);
 			System.out.println("Missing: " + unfound);
 		}

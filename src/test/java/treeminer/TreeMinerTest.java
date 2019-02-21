@@ -106,4 +106,20 @@ public class TreeMinerTest {
 		assertArrayEquals(new double[] { 1, 0, 1, 0, 0, 1, 0, 0, 0 }, characterizations[2], 0);
 		assertArrayEquals(new double[] { 1, 1, 0, 1, 1, 0, 1, 0, 1 }, characterizations[3], 0);
 	}
+	
+	@Test
+	public void testFindSubtreesRootOnlyDistinct() {
+		TreeMiner treeMiner = new TreeMiner();
+		treeMiner.setCountMultipleOccurrences(true);
+		treeMiner.setOnlySearchForPatternsThatStartWithTheRoot(true);
+		List<String> foundTrees = treeMiner.findFrequentSubtrees(Arrays.asList("A B - C -", "A", "A C -", "A B D - -"),
+				1);
+		double[][] characterizations = treeMiner.getCharacterizationsOfTrainingExamples();
+		assertEquals(Arrays.asList("A", "A B -", "A B - C -", "A B D - -", "A C -"),
+				foundTrees);
+		assertArrayEquals(new double[] { 1, 1, 1, 1, 0}, characterizations[0], 0);
+		assertArrayEquals(new double[] { 1, 0, 0, 0, 0}, characterizations[1], 0);
+		assertArrayEquals(new double[] { 1, 0, 1, 0, 0}, characterizations[2], 0);
+		assertArrayEquals(new double[] { 1, 1, 0, 0, 1}, characterizations[3], 0);
+	}
 }
